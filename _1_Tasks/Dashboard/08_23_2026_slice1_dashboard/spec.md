@@ -1,5 +1,5 @@
 ---
-status: draft
+status: verified
 created: 08_23_2026
 updated: 08_23_2026
 ---
