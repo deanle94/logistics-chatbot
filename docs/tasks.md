@@ -34,12 +34,12 @@ Dataset verified: `infra/data/mock_logistics_data.csv`, 400 rows, status 304/55/
 | ID | Task | Auto-check | Pass when |
 |---|---|---|---|
 | S1.1 | 5 KPIs in calculator | unit test vs constants | 400 / 304 / 55 / 84.7% (±0.05) / avg delivery time == CSV mean over 370 rows |
-| S1.2 | Generic aggregate query (metrics: order count, delivered, delayed, delay rate, avg delivery time, quantity; group-bys: none/week/month/carrier/status/sku/category/region/warehouse; filters: date range + each dimension) | parametrized unit test vs CSV oracle | every combo == oracle; grouped sums == ungrouped; empty filter → empty, no error |
+| S1.2 | Generic aggregate query (metrics: order count, delivered, delayed, delay rate, avg delivery time, quantity; group-bys: none/week/month/carrier/status/sku/category/region/warehouse; filters: date range + each dimension) | parametrized test vs CSV oracle — runs under `pytest -m stack` (D18: the calculator builds SQL, so the oracle needs the live database) | every combo == oracle; grouped sums == ungrouped; empty filter → empty, no error |
 | S1.3 | KPI endpoint | API test | body == S1.1 |
-| S1.4 | Charts endpoint (volume/month, on-time vs delayed/month, carrier breakdown) built on S1.2 | API test | 3 charts; display types line/stacked/bar; volume Σ 400; stacked Σ 359; carrier sorted desc |
-| S1.5 | Dashboard page: 5 KPI cards + 3 charts + data-table toggle under each chart | browser test | 5 cards, text == KPI endpoint; 3 rendered charts; toggle reveals table with rows == API rows |
+| S1.4 | Three parameterless chart routes under `/api/dashboard/` (order-volume, delivery-performance, carrier-delay-rate), each one fixed call into S1.2 | API test | each route == CSV oracle; volume Σ 400; delivery-performance Σ 359; carrier delay rate sorted desc; each echoes its `params` |
+| S1.5 | Dashboard page: 5 KPI cards + 3 charts + data-table toggle under each chart; front-end composes the charts and owns the three fixed display types | browser test | 5 cards, text == KPI endpoint; line + stacked + bar all render; each toggle reveals a table with rows == that route’s rows |
 
-**Slice gate:** S1.6 green. Dashboard feature done
+**Slice gate:** S1.5 green. Dashboard feature done
 ## Slice 2 — Chat: natural-language queries (real Claude)
 
 | ID | Task | Auto-check | Pass when |
@@ -48,11 +48,11 @@ Dataset verified: `infra/data/mock_logistics_data.csv`, 400 rows, status 304/55/
 | S2.2 | Query tool: result + rows + echoed params + display type | unit test | display rule holds (single→stat, time→line, category→bar, on-time vs delayed→stacked); echo == input |
 | S2.3 | Agent: question → tool + params → result → prose; tool call mandatory before text | agent test, 4 canonical questions | expected tool/metric/group-by; tool call precedes text; **no digit in prose absent from tool result** |
 | S2.4 | Out-of-scope refusal | agent test | "weather", "poem" → unsupported display, null data, no digits |
-| S2.5 | Chat endpoint: answer + display + data + rows + explanation (tool, params) | API test | schema valid; "total orders" via chat == KPI endpoint; < 30 s |
-| S2.6 | Chat page: input, answer card (stat/line/bar/stacked), explainability panel, table toggle, suggested chips | browser test (real backend) | carrier question → bar; panel shows metric + group-by; table rows == API rows; ≥3 chips, click fills input |
+| S2.5 | `POST /api/chat` over SSE: `stage`* → one `result` (answer + display + data + rows + explanation) → `done` (D20, D23) | API test + shared frame reader | content-type `text/event-stream`; exactly one `result`, schema valid; "total orders" via chat == KPI endpoint; refusal is a `result`, not an `error`; < 30 s |
+| S2.6 | Chat page: input, progress states, answer card (stat/line/bar/stacked), explainability panel, table toggle, suggested chips | browser test (real backend) | ≥1 progress line before the answer; carrier question → bar; panel shows metric + group-by; table rows == API rows; ≥3 chips, click fills input |
 | S2.7 | Routing eval set (≥12 questions) | eval test | ≥11/12 correct tool+params; 0 invented digits; report written |
 
-**Slice gate:** S2.7 + S2.8 green.
+**Slice gate:** S2.7 green.
 
 ## Slice 3 — Chat: forecasting
 
@@ -62,7 +62,7 @@ Dataset verified: `infra/data/mock_logistics_data.csv`, 400 rows, status 304/55/
 | S3.2 | Forecast tool + agent routing | agent test | "predict demand for SKU X next 4 months" → forecast tool, horizon 4, correct SKU; no invented digits |
 | S3.3 | Forecast card: values, history solid + forecast dashed, inventory advice, methodology | browser test | 4 sections visible; chart has a dashed line |
 
-**Slice gate:** S3.4 green.
+**Slice gate:** S3.3 green.
 
 ## Slice 4 — Hardening & docs
 
@@ -77,9 +77,9 @@ Dataset verified: `infra/data/mock_logistics_data.csv`, 400 rows, status 304/55/
 ## Order
 
 ```
-S0 (all) → S1.1 → S1.2 → S1.3/1.4 → S1.5 → S1.6
-        → S2.1 → S2.2 → S2.3 → S2.4 → S2.5 → S2.6 → S2.7 → S2.8
-        → S3.1 → S3.2 → S3.3 → S3.4
+S0 (all) → S1.1 → S1.2 → S1.3/1.4 → S1.5
+        → S2.1 → S2.2 → S2.3 → S2.4 → S2.5 → S2.6 → S2.7
+        → S3.1 → S3.2 → S3.3
         → S4
 ```
 

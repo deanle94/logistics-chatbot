@@ -1,0 +1,55 @@
+Evidence 07 - repo layout: code under src/, stack inputs under infra/
+Captured: 2026-08-23
+
+=== repo root ===
+CLAUDE.md
+_1_Tasks
+docker-compose.yml
+docs
+infra
+rules
+src
+
+=== src/ ===
+backend
+frontend
+
+=== infra/ ===
+infra/data/mock_logistics_data.csv
+infra/db/init/01_roles.sh
+
+=== changed references ===
+18:      # Consumed by infra/db/init/01_roles.sh on first boot.
+27:      - ./infra/db/init:/docker-entrypoint-initdb.d:ro
+39:      context: ./src/backend
+43:      DATASET_PATH: /data/mock_logistics_data.csv
+47:      - ./infra/data:/data:ro
+55:      context: ./src/backend
+83:      context: ./src/frontend
+
+BACKEND_ROOT = Path(__file__).resolve().parents[1]
+SRC_ROOT = BACKEND_ROOT.parent
+REPO_ROOT = SRC_ROOT.parent
+FRONTEND_ROOT = SRC_ROOT / "frontend"
+PACKAGE_ROOT = BACKEND_ROOT / "src" / "logistics_analytics"
+CSV_PATH = REPO_ROOT / "infra" / "data" / "mock_logistics_data.csv"
+
+
+note: DATASET_PATH stays /data/... - that is the container side of the mount.
+
+=== cold start: docker compose down -v, then all 33 gates ===
+the empty volume is what proves both infra mounts:
+  01_roles.sh runs only on a fresh volume -> test_application_role_cannot_write
+  the seeder re-reads the CSV through the mount -> row count + status counts
+
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================= 27 passed, 6 deselected, 1 warning in 8.23s =================
+
+tests/test_stack.py::test_backend_health_reports_database_reachable PASSED [ 16%]
+tests/test_stack.py::test_database_holds_every_csv_row PASSED            [ 33%]
+tests/test_stack.py::test_status_counts_match_the_csv PASSED             [ 50%]
+tests/test_stack.py::test_application_role_cannot_write PASSED           [ 66%]
+tests/test_stack.py::test_seeding_twice_leaves_the_row_count_unchanged PASSED [ 83%]
+tests/test_stack.py::test_frontend_renders_backend_status_in_a_browser PASSED [100%]
+================ 6 passed, 27 deselected, 1 warning in 29.59s =================

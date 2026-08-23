@@ -1,0 +1,37 @@
+### S0.5 docker compose smoke  2026-08-23T04:59:55Z
+
+$ docker compose ps
+SERVICE    STATUS                      PORTS
+backend    Up 11 seconds (healthy)     0.0.0.0:8000->8000/tcp
+db         Up 18 seconds (healthy)     0.0.0.0:55433->5432/tcp
+frontend   Up 5 seconds (healthy)      0.0.0.0:5173->80/tcp
+seeder     Exited (0) 12 seconds ago   
+
+$ curl -i http://localhost:8000/health
+HTTP/1.1 200 OK
+{"status":"ok","database":"reachable"}
+
+$ curl -o /dev/null -w '%{http_code}' http://localhost:5173/   (front-end)
+HTTP 200
+
+$ curl http://localhost:5173/api/health   (nginx proxy, same origin)
+{"status":"ok","database":"reachable"}
+
+$ psql: row count + status breakdown as the READ-ONLY role
+ total_rows 
+------------
+        400
+(1 row)
+
+   status   | count 
+------------+-------
+ delivered  |   304
+ delayed    |    55
+ in_transit |    27
+ exception  |    11
+ canceled   |     3
+(5 rows)
+
+$ psql: attempt a write as the read-only role
+ERROR:  permission denied for table orders
+

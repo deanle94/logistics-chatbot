@@ -7,17 +7,30 @@ database is asserted separately in ``test_stack.py``.
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
+from sqlalchemy import Row, Select
 
 from logistics_analytics.config import Settings
 from logistics_analytics.main import create_app
 
 
+def no_rows(statement: Select[Any]) -> tuple[Row[Any], ...]:
+    """Query executor stub for the health tests, which never reach the database.
+
+    Slice 1 made the executor a constructor argument of the application. Health does not
+    use it, so the stub asserts only that something statement-shaped was handed over.
+    """
+    assert statement is not None
+    return ()
+
+
 def test_health_reports_ok_when_database_is_reachable() -> None:
     """The happy path: 200 plus an explicit statement about the database."""
-    client = TestClient(create_app(database_probe=lambda: True))
+    client = TestClient(create_app(database_probe=lambda: True, execute_query=no_rows))
 
     response = client.get("/health")
 
@@ -27,7 +40,7 @@ def test_health_reports_ok_when_database_is_reachable() -> None:
 
 def test_health_reports_unavailable_when_database_is_unreachable() -> None:
     """A booted service with a dead database is not healthy - 503, not a cheerful 200."""
-    client = TestClient(create_app(database_probe=lambda: False))
+    client = TestClient(create_app(database_probe=lambda: False, execute_query=no_rows))
 
     response = client.get("/health")
 

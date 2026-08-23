@@ -1,0 +1,59 @@
+S1.3 / S1.4 - the numbers, captured with curl on the host against the running compose stack.
+Captured: 2026-08-23T08:02:40Z (UTC)  |  branch: features/slice1-dashboard  |  commit base: d0bfaea
+
+Requests go through nginx on the published front-end port, which is the path the spec names
+(/api/kpis). nginx strips the /api prefix, so the backend sees /kpis - visible in 05_api_access_log.txt.
+This proves the whole chain: nginx -> FastAPI -> calculator -> SQLAlchemy -> PostgreSQL (app_ro).
+
+Oracle to check these against (independent read of infra/data/mock_logistics_data.csv):
+  400 rows | delivered 304 | delayed 55 | 304/359 = 84.6797% -> 84.7 | mean over 370 two-date rows = 3.82973 -> 3.8
+  order-volume sum = 400 | delivery-performance sum = 304 + 55 = 359 | carrier delay rate desc, first GLS 0.2857
+
+===================================================================================
+$ curl -i http://localhost:5173/api/kpis
+===================================================================================
+HTTP/1.1 200 OK
+Server: nginx/1.29.8
+Date: Sun, 23 Aug 2026 08:02:40 GMT
+Content-Type: application/json
+Content-Length: 222
+Connection: keep-alive
+
+{"total_orders":{"value":400,"unit":null},"delivered_orders":{"value":304,"unit":null},"delayed_orders":{"value":55,"unit":null},"on_time_rate":{"value":84.7,"unit":"%"},"average_delivery_time":{"value":3.8,"unit":"days"}}
+
+===================================================================================
+$ curl -i http://localhost:5173/api/dashboard/order-volume
+===================================================================================
+HTTP/1.1 200 OK
+Server: nginx/1.29.8
+Date: Sun, 23 Aug 2026 08:02:40 GMT
+Content-Type: application/json
+Content-Length: 539
+Connection: keep-alive
+
+{"rows":[{"group":"2025-01","order_count":75},{"group":"2025-02","order_count":36},{"group":"2025-03","order_count":46},{"group":"2025-04","order_count":25},{"group":"2025-05","order_count":29},{"group":"2025-06","order_count":21},{"group":"2025-07","order_count":42},{"group":"2025-08","order_count":34},{"group":"2025-09","order_count":18},{"group":"2025-10","order_count":26},{"group":"2025-11","order_count":24},{"group":"2025-12","order_count":24}],"params":{"metrics":["order_count"],"group_by":"month","filters":{},"order":"group"}}
+
+===================================================================================
+$ curl -i http://localhost:5173/api/dashboard/delivery-performance
+===================================================================================
+HTTP/1.1 200 OK
+Server: nginx/1.29.8
+Date: Sun, 23 Aug 2026 08:02:40 GMT
+Content-Type: application/json
+Content-Length: 850
+Connection: keep-alive
+
+{"rows":[{"group":"2025-01","delivered_orders":57,"delayed_orders":12},{"group":"2025-02","delivered_orders":28,"delayed_orders":4},{"group":"2025-03","delivered_orders":34,"delayed_orders":5},{"group":"2025-04","delivered_orders":22,"delayed_orders":0},{"group":"2025-05","delivered_orders":17,"delayed_orders":7},{"group":"2025-06","delivered_orders":16,"delayed_orders":4},{"group":"2025-07","delivered_orders":32,"delayed_orders":7},{"group":"2025-08","delivered_orders":26,"delayed_orders":4},{"group":"2025-09","delivered_orders":16,"delayed_orders":2},{"group":"2025-10","delivered_orders":20,"delayed_orders":3},{"group":"2025-11","delivered_orders":16,"delayed_orders":4},{"group":"2025-12","delivered_orders":20,"delayed_orders":3}],"params":{"metrics":["delivered_orders","delayed_orders"],"group_by":"month","filters":{},"order":"group"}}
+
+===================================================================================
+$ curl -i http://localhost:5173/api/dashboard/carrier-delay-rate
+===================================================================================
+HTTP/1.1 200 OK
+Server: nginx/1.29.8
+Date: Sun, 23 Aug 2026 08:02:40 GMT
+Content-Type: application/json
+Content-Length: 438
+Connection: keep-alive
+
+{"rows":[{"group":"GLS","delay_rate":0.2857},{"group":"USPS","delay_rate":0.2391},{"group":"UPS","delay_rate":0.2237},{"group":"Royal Mail","delay_rate":0.2083},{"group":"OnTrac","delay_rate":0.16},{"group":"FedEx","delay_rate":0.131},{"group":"LaserShip","delay_rate":0.0833},{"group":"DHL","delay_rate":0.0526},{"group":"DPD","delay_rate":0.0}],"params":{"metrics":["delay_rate"],"group_by":"carrier","filters":{},"order":"value_desc"}}
+

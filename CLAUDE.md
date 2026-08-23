@@ -13,10 +13,11 @@
 
 ## 2. All your decision making Must follow the design in docs\architecture.md and docs\requirement.md. DO NOT invent anything new outside the scope and make thing over-engineer.
 ## 3. If there is anything you're unsure, ask me. DON'T Make any hidden assumption.
-## 4. When design the technical solution(components & class design), use the technical stack defined in docs\technical-stack.md and rules in rules\python-coding-rules.md
-## 5. When generated python code, use this rule: rules\python-coding-rules.md
-## 6. For the UI implementation, must use docs\design. Use playright to validate the screen created.
-## 7. Repository structure — put new files where they belong
+## 4. When design the technical solution(components & class design), use the technical stack defined in docs\technical-stack.md and rules in rules\
+## 5. When generate python code, use this rule: rules\python-coding-rules.md
+## 6. When generate front-end code(React), use this rules: rules\react-coding-rules.md
+## 7. For the UI implementation, must use docs\design. Use playright to validate the screen created.
+## 8. Repository structure — put new files where they belong
 Three top-level categories. Reasoning in `docs/decision-log.md` D8.
 
 ```
@@ -37,9 +38,15 @@ docker-compose.yml        stack entry point, stays at the root
 - **Never move or edit `infra/data/`.** It is read-only, and `tests/conftest.py` re-reads it host-side to derive the expected numbers independently of the code under test (the spec's oracle rule).
 - Moving any of these folders means updating `docker-compose.yml` (build contexts + bind mounts) and the path constants at the top of `tests/conftest.py`. Prove the move with a cold start: `docker compose down -v`, then both gate sets.
 
-## 8. Verify with the gates, not by eye
+## 9. Verify with the gates, not by eye
 From `src/backend/`:
-- `uv run pytest` — 27 static gates (ruff, ruff format, mypy, import-linter, planted violation, structure, deps, health, frontend build/type-check/lint)
-- `uv run pytest -m stack` — 6 gates against the live compose stack (row count, status counts, write rejection, re-seed, Playwright)
+- `uv run pytest` — 140 static gates (ruff, ruff format, mypy, import-linter, planted violation, structure, deps, health, SQL builder, API contract, no-formula-outside-calculator, frontend build/type-check/lint)
+- `uv run pytest -m stack` — 125 gates against the live compose stack (row count, status counts, write rejection, re-seed, the KPI + query oracles, the four routes, Playwright)
+
+Counts are Slice 1. Slice 0 was 27 / 6. The correctness gates are the stack set, not the
+static set — a calculator that emits SQL can only be checked against the CSV by running it
+(decision-log D18/D19), so `uv run pytest` alone never proves a number is right.
 
 Both must exit 0. Capture the output as evidence — "it works" without an artifact does not count.
+
+## 10. when capture decision in docs/decision-log.md. Must precise and only capture main reason. DO NOT verbose here

@@ -1,0 +1,41 @@
+### COMMAND: uv run pytest   (static gates: S0.1 S0.2 S0.4-gates S0.6)
+### DATE: 2026-08-23T04:58:31Z
+
+============================= test session starts =============================
+collecting ... collected 33 items / 6 deselected / 27 selected
+
+tests/test_dependencies.py::test_backend_declares_required_package[fastapi] PASSED [  3%]
+tests/test_dependencies.py::test_backend_declares_required_package[sqlalchemy] PASSED [  7%]
+tests/test_dependencies.py::test_backend_declares_required_package[pydantic] PASSED [ 11%]
+tests/test_dependencies.py::test_backend_declares_required_package[langchain] PASSED [ 14%]
+tests/test_dependencies.py::test_backend_declares_required_package[langgraph] PASSED [ 18%]
+tests/test_dependencies.py::test_frontend_declares_required_package[react] PASSED [ 22%]
+tests/test_dependencies.py::test_frontend_declares_required_package[shadcn] PASSED [ 25%]
+tests/test_dependencies.py::test_frontend_declares_required_package[axios] PASSED [ 29%]
+tests/test_frontend_gates.py::test_frontend_gate_passes[type-check] PASSED [ 33%]
+tests/test_frontend_gates.py::test_frontend_gate_passes[lint] PASSED     [ 37%]
+tests/test_frontend_gates.py::test_frontend_gate_passes[build] PASSED    [ 40%]
+tests/test_gates.py::test_static_gate_passes[ruff-check] PASSED          [ 44%]
+tests/test_gates.py::test_static_gate_passes[ruff-format] PASSED         [ 48%]
+tests/test_gates.py::test_static_gate_passes[mypy] PASSED                [ 51%]
+tests/test_gates.py::test_static_gate_passes[import-linter] PASSED       [ 55%]
+tests/test_health.py::test_health_reports_ok_when_database_is_reachable PASSED [ 59%]
+tests/test_health.py::test_health_reports_unavailable_when_database_is_unreachable PASSED [ 62%]
+tests/test_health.py::test_settings_require_database_url_from_the_environment PASSED [ 66%]
+tests/test_health.py::test_settings_read_the_database_url_from_the_environment PASSED [ 70%]
+tests/test_planted_violation.py::test_control_copy_passes_the_lint PASSED [ 74%]
+tests/test_planted_violation.py::test_planted_violation_fails_the_lint PASSED [ 77%]
+tests/test_structure.py::test_src_layout_is_standard PASSED              [ 81%]
+tests/test_structure.py::test_layer_is_an_importable_package[agent] PASSED [ 85%]
+tests/test_structure.py::test_layer_is_an_importable_package[api] PASSED [ 88%]
+tests/test_structure.py::test_layer_is_an_importable_package[tools] PASSED [ 92%]
+tests/test_structure.py::test_layer_is_an_importable_package[calculator] PASSED [ 96%]
+tests/test_structure.py::test_layer_is_an_importable_package[data] PASSED [100%]
+
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  A:\Learning\AI\HongKong_AI_Assessment\backend\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================= 27 passed, 6 deselected, 1 warning in 8.63s =================

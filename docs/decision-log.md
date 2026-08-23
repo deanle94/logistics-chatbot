@@ -2,9 +2,9 @@
 
 Every key decision as **chose / why / gave up**. Slice 4 (S4.1) folds this into the README.
 
-`docs/architecture.md` section 4 owns the *architectural* decisions (one calculator, one
-service, AI never computes). This file records the *implementation* decisions taken per
-slice, and any deliberate deviation from that document.
+`docs/architecture.md` §4 owns the *architectural* decisions (one calculator, one service, AI
+never computes). This file records the *implementation* decisions per slice, and any
+deliberate deviation from that document.
 
 ---
 
@@ -15,36 +15,36 @@ slice, and any deliberate deviation from that document.
 |  |  |
 | --- | --- |
 | **Chose** | `uv` for dependency management and the Docker base image. |
-| **Why** | PEP-621 native, so coding rule 14 (`src/` layout + `pyproject.toml`) comes free. The lockfile makes a reviewer's build byte-identical to ours, and `uv sync --frozen` in the Dockerfile fails loudly on a stale lock instead of quietly resolving something untested. |
-| **Gave up** | One non-standard tool a reviewer may not know; `pip install -r requirements.txt` is more universally readable. |
+| **Why** | PEP-621 native, so coding rule 14 (`src/` layout + `pyproject.toml`) comes free. `uv sync --frozen` fails loudly on a stale lock instead of quietly resolving something untested. |
+| **Gave up** | A tool a reviewer may not know; `pip install -r requirements.txt` is more universally readable. |
 
 ### D2 — `import-linter` for the layer boundaries
 
 |  |  |
 | --- | --- |
 | **Chose** | Declarative `forbidden` contracts in `[tool.importlinter]`, run as `lint-imports`. |
-| **Why** | The architecture's import rules become configuration that reads like the architecture document, checked by one exit code. It follows the whole import graph, so an *indirect* leak (`agent → helper → data`) is caught — a per-file textual rule would miss exactly the leak most likely to happen. |
-| **Gave up** | An extra dev dependency and a second lint command beside ruff. Rejected: nested `.ruff.toml` + `banned-api` (no new dep, but config scatters across five files and misses indirect leaks) and a hand-written `ast` walker (zero deps, but ~50 lines of infrastructure we would own). |
-| **Note** | `main.py` is deliberately outside the contracts. It is the composition root; a root that could not reach across layers could not compose them. Every other module stays inside its boundary. |
-| **Note** | The "only `data/` touches the database" contract sets `allow_indirect_imports = true` on purpose — `api/` may call `data/`, it just may not import SQLAlchemy itself. The two layer contracts keep the strict default. |
+| **Why** | The architecture's import rules become configuration checked by one exit code. It follows the whole import graph, so an *indirect* leak (`agent → helper → data`) is caught — the leak most likely to happen. |
+| **Gave up** | An extra dev dependency and a second lint command. Rejected: nested `.ruff.toml` + `banned-api` (config scatters across five files, misses indirect leaks) and a hand-written `ast` walker (~50 lines we would own). |
+| **Note** | `main.py` is deliberately outside the contracts — a composition root that could not reach across layers could not compose them. |
+| **Note** | The "only `data/` touches the database" contract sets `allow_indirect_imports = true` on purpose: `api/` may call `data/`, it just may not import SQLAlchemy itself. |
 
 ### D3 — One-shot seeder container, idempotent by replace
 
 |  |  |
 | --- | --- |
-| **Chose** | A `seeder` service that runs `python -m logistics_analytics.data.seed` and exits 0; the API waits on `service_completed_successfully`. It deletes and reloads rather than inserting-if-missing. |
-| **Why** | S0.3 requires "seed twice → still 400", which needs the seed to be a runnable command, not a first-boot side effect. It builds the schema from the same SQLAlchemy models the app uses, so schema and models cannot drift. Replace-not-append means a changed CSV can never leave stale rows behind looking like success. |
-| **Gave up** | A third container and a slower cold start than a raw `COPY`. Rejected: `docker-entrypoint-initdb.d` (fastest, but only runs on an empty volume, so "seed twice" could not be asserted) and seeding in the API's startup lifespan (fewest parts, but self-contradictory — the API would need write privileges). |
+| **Chose** | A `seeder` service running `python -m logistics_analytics.data.seed` that exits 0; the API waits on `service_completed_successfully`. Deletes and reloads rather than inserting-if-missing. |
+| **Why** | S0.3 ("seed twice → still 400") needs the seed to be a runnable command, not a first-boot side effect. Schema is built from the app's own SQLAlchemy models, so the two cannot drift. Replace-not-append means a changed CSV leaves no stale rows. |
+| **Gave up** | A third container and a slower cold start. Rejected: `docker-entrypoint-initdb.d` (only runs on an empty volume, so "seed twice" is unassertable) and seeding in the API's lifespan (the API would need write privileges). |
 
 ### D4 — Two roles, `SELECT`-only grants, no view
 
 |  |  |
 | --- | --- |
-| **Chose** | `app_owner` owns the tables and is used only by the seeder. `app_ro` holds `CONNECT + USAGE + SELECT` and is what the API connects as. No view or materialized view. |
-| **Why** | Read-only is a *privilege*, not a convention, so no code path can opt out. Measured on a live `postgres:17-alpine`: with `SELECT`-only grants an `INSERT` fails with `permission denied for table orders`; `ALTER DEFAULT PRIVILEGES` extends this to Slice 1 tables automatically. |
-| **Gave up** | Two connection strings in `.env.example`, and no object-level second lock. |
-| **Considered and rejected** | A **materialized view** as the app's only object. The probe showed it does block `INSERT`/`UPDATE` (`cannot change materialized view`) even with `ALL` granted — but it does *not* protect the base table, `REFRESH` still succeeded, and it went stale (base 4 rows, view still 2). That last point is decisive: S0.3 asserts "the database has exactly 400 rows", and a materialized view creates two answers to that question. |
-| **Considered and rejected** | `default_transaction_read_only = on`. One line, but a session default any code can turn off — it would pass the test while being security theatre. |
+| **Chose** | `app_owner` owns the tables, used only by the seeder. `app_ro` holds `CONNECT + USAGE + SELECT` and is what the API connects as. No view. |
+| **Why** | Read-only becomes a *privilege*, not a convention, so no code path can opt out. Measured on a live `postgres:17-alpine`: `INSERT` fails with `permission denied for table orders`; `ALTER DEFAULT PRIVILEGES` covers Slice 1 tables automatically. |
+| **Gave up** | Two connection strings in `.env.example`; no object-level second lock. |
+| **Rejected** | **Materialized view.** It does block writes (`cannot change materialized view`) but does not protect the base table, `REFRESH` still succeeds, and it went stale in the probe (base 4 rows, view 2). S0.3 asserts "exactly 400 rows" — a matview creates two answers to that question. |
+| **Rejected** | **`default_transaction_read_only = on`.** One line, but a session default any code can turn off — passes the test while being security theatre. |
 
 ### D4a — Aggregation views: allowed later *(deliberate deviation)*
 
@@ -52,23 +52,23 @@ slice, and any deliberate deviation from that document.
 | --- | --- |
 | **Chose** | SQL views containing aggregates may be introduced in a later slice if they earn their place. |
 | **Why** | Explicit tech-lead decision, taken with the trade-off stated. |
-| **Gave up** | Single ownership of formulas. `architecture.md` Decision 1 says the calculator is the sole owner of every business definition; a view holding "delay rate" or "on-time %" would define `delayed` in two languages, which is the drift that decision exists to prevent. At 400 rows there is no performance argument on the other side. |
-| **Status** | No Slice 0 impact. It first matters when Slice 1 formulas land — the oracle tests there compare the calculator against the CSV, so a view-based metric would need its own oracle. |
+| **Gave up** | Single ownership of formulas. A view holding "delay rate" would define `delayed` in two languages — the drift `architecture.md` Decision 1 exists to prevent. At 400 rows there is no performance argument on the other side. |
+| **Status** | No Slice 0 impact. It first matters when Slice 1 formulas land: a view-based metric would need its own oracle. |
 
 ### D5 — Multi-stage build served by nginx, `/api` proxied
 
 |  |  |
 | --- | --- |
 | **Chose** | `node` builds the bundle, `nginx` serves it, `/api/` proxies to `backend:8000`. |
-| **Why** | S0.5 needs the front-end to answer HTTP 200 from `docker compose up`; a React app is a folder of files, so something must serve it. Proxying puts browser and API on **one origin, so CORS never exists** in any slice. The `vite build` that S0.4 gates is also the artifact that ships, so a broken build cannot pass. Same shape as the public deploy S1.6 will need. |
-| **Gave up** | No hot reload inside compose — a UI change needs `docker compose up --build frontend`, or `npm run dev` outside compose. If that loop becomes painful, a `docker-compose.override.yml` swapping in the dev server is a one-file addition. |
+| **Why** | S0.5 needs the front-end to answer 200 from `docker compose up`. One origin means **CORS never exists** in any slice. The `vite build` S0.4 gates is the artifact that ships, so a broken build cannot pass. Same shape S1.6's public deploy needs. |
+| **Gave up** | No hot reload inside compose — a UI change needs `--build frontend`, or `npm run dev` outside compose. A `docker-compose.override.yml` swapping in the dev server would fix it in one file. |
 
 ### D6 — Playwright against the real stack
 
 |  |  |
 | --- | --- |
 | **Chose** | A real browser driving the nginx-served page, not a jsdom component test. |
-| **Why** | S0.4 says "browser test", and asserting on text sourced from `/health` proves the entire chain in one check: page served, React rendered, proxy works, FastAPI answers, PostgreSQL reachable. It also replaces the separate front-end HTTP 200 check in S0.5 — a bare 200 would prove only the first link. Reused by S1.5, S2.6 and S3.3, so the cost amortises across three later slices. |
+| **Why** | Asserting on text sourced from `/health` proves the whole chain in one check: page served, React rendered, proxy works, FastAPI answers, PostgreSQL reachable. It also replaces S0.5's bare HTTP 200, which would prove only the first link. Reused by S1.5, S2.6, S3.3. |
 | **Gave up** | ~200 MB of browser binaries and a slower test that needs the stack up. |
 
 ### D7 — No runner script: every gate is a `pytest` test
@@ -76,71 +76,213 @@ slice, and any deliberate deviation from that document.
 |  |  |
 | --- | --- |
 | **Chose** | `ruff`, `mypy`, `lint-imports`, `npm run type-check/lint/build` and the compose smoke are each a test that shells out and asserts exit 0. Stack-dependent tests sit behind `-m stack`. |
-| **Why** | `pytest` is already a runner; a bespoke `verify_slice0.py` would be ~60 lines whose only job is running other code. Two commands cover the slice, and S4.3's `verify_all` becomes `pytest -m ""`. A failure prints the tool's own message rather than a wrapper's summary. |
-| **Gave up** | A lint failure is reported as a test failure, so the diagnosis is one level down in captured stdout; markers have to be remembered. Rejected: `Makefile` (`make` is not installed on the target machine) and "just document the commands" (no single exit code, so "green" becomes a human claim — which `docs/tasks.md` rules out). |
+| **Why** | `pytest` is already a runner; a bespoke `verify_slice0.py` would be ~60 lines whose only job is running other code. Two commands cover the slice, and S4.3's `verify_all` becomes `pytest -m ""`. Failures print the tool's own message. |
+| **Gave up** | A lint failure is reported as a test failure, so the diagnosis is one level down in captured stdout. Rejected: `Makefile` (`make` not installed on the target machine) and "just document the commands" (no single exit code, so "green" becomes a human claim). |
 
 ### Local development credentials live in `docker-compose.yml`
 
 |  |  |
 | --- | --- |
 | **Chose** | Every credential is `${VAR:-local_dev_default}`; `.env.example` documents them; `.env` is git-ignored. |
-| **Why** | S0.5 requires `docker compose up` to work as one command. Requiring a hand-made `.env` first would fail that criterion for a reviewer who just cloned the repo. |
-| **Gave up** | Strictly, there are default passwords in a committed file. They are local-container-only and any non-local deployment must override every one of them. No real secret is committed. |
+| **Why** | S0.5 requires `docker compose up` to work as one command — requiring a hand-made `.env` first would fail that for a fresh clone. |
+| **Gave up** | Default passwords sit in a committed file. Local-container-only; any non-local deployment must override all of them. No real secret is committed. |
 
-### D8 — Repo layout: code under `src/`, everything the stack needs under `infra/`, documents at the root
+### D8 — Repo layout: code under `src/`, stack inputs under `infra/`, documents at the root
 
 |  |  |
 | --- | --- |
-| **Chose** | Three root categories. `src/` is application code (`backend/`, `frontend/`); `infra/` is everything the stack needs but nobody writes as application code (`db/init/` provisioning, `data/` the dataset); `docs/`, `rules/`, `_1_Tasks/`, `CLAUDE.md` are documents and governance. `docker-compose.yml` stays at the root as the stack's entry point. |
-| **Why** | A reviewer opening the repo sees three categories at once — what we wrote, what it runs on, what governs it — instead of eight sibling folders with no ranking. Requested by the tech lead for exactly that separation. |
-| **Gave up** | The Python package now sits at `src/backend/src/logistics_analytics/` — the word `src` appears twice. Accepted deliberately: coding rule 14 requires `pyproject.toml` beside `src/<package>/` with a sibling `tests/`, and `test_structure.py` asserts it, so collapsing the inner `src/` would fail our own S0.2 eval to save one path segment. |
-| **Gave up** | `docker-compose.yml` was *not* moved into `infra/`, so infra is split across two places. S0.5 requires `docker compose up` to work from the repo root as one command, and `-f infra/docker-compose.yml` would also re-base every relative path inside the file. The entry point stays where a reviewer will look for it. |
-| **Gave up** | Filing `data/` under `infra/` understates one of its two roles. The CSV is the seeder's input *and* the test oracle — `conftest.py` re-reads it host-side, in no container at all, to derive 400 and 304/55/27/11/3 independently of the code under test. `infra/` reads as "how it is deployed", which covers only the first role. Overruled by the tech lead in favour of a smaller root; the oracle still works because only the path changed. |
-| **Gave up** | Three governing documents had to be edited to match a folder rename (`docs/tasks.md`, `spec.md`, this file). Editing an acceptance criterion so it matches the filesystem is the wrong direction of travel; recorded below under corrections so the edit is traceable rather than silent. |
-| **Blast radius** | In `docker-compose.yml`: three build contexts, the initdb bind mount, and the dataset bind mount — the *container-side* `DATASET_PATH: /data/...` is unchanged, since only the host half of the mount moved. In `tests/conftest.py`: a new `SRC_ROOT` between `BACKEND_ROOT` and `REPO_ROOT`, and `CSV_PATH`. Three markdown path citations. Nothing else referenced the old paths. The `.venv` had to be rebuilt — `uv` bakes the project's absolute path into the install and the console-script trampolines, so a moved venv fails with `uv trampoline failed to canonicalize script path`. `node_modules` survived the move: npm's Windows shims resolve relatively. |
-| **Evidence** | 27 static + 6 stack gates green from a cold `docker compose down -v`, re-run after each move — reproduce with the two commands under *Verifying this repo* below. The cold start is what proves the `infra/` moves: `01_roles.sh` only executes on an empty volume (so `test_application_role_cannot_write` fails if the initdb mount is wrong), and the seeder re-reads the CSV through the dataset mount (so the 400-row and status-count tests fail if that one is wrong). |
+| **Chose** | Three root categories: `src/` (application code), `infra/` (what the stack needs but nobody writes as app code — `db/init/`, `data/`), and documents/governance (`docs/`, `rules/`, `_1_Tasks/`, `CLAUDE.md`). `docker-compose.yml` stays at the root as the entry point. |
+| **Why** | A reviewer sees three categories at once — what we wrote, what it runs on, what governs it — instead of eight unranked siblings. Requested by the tech lead. |
+| **Gave up** | The package sits at `src/backend/src/logistics_analytics/` — `src` twice. Deliberate: coding rule 14 requires `pyproject.toml` beside `src/<package>/`, and `test_structure.py` asserts it. |
+| **Gave up** | `docker-compose.yml` was not moved, so infra is split across two places. S0.5 requires the command to work from the repo root, and `-f infra/…` would re-base every relative path in the file. |
+| **Gave up** | `infra/data/` understates the CSV's second role: it is the seeder's input *and* the test oracle (`conftest.py` re-reads it host-side, in no container). Overruled by the tech lead in favour of a smaller root; only the path moved, so the oracle still works. |
+| **Gave up** | Three governing documents were edited to match a folder rename. Editing an acceptance criterion to match the filesystem is the wrong direction of travel — logged under *Corrections* so it is traceable. |
+| **Blast radius** | `docker-compose.yml`: three build contexts + two bind mounts (container-side `DATASET_PATH` unchanged). `conftest.py`: new `SRC_ROOT`, new `CSV_PATH`. Three markdown citations. The `.venv` had to be rebuilt — `uv` bakes absolute paths into console-script trampolines (`uv trampoline failed to canonicalize script path`); `node_modules` survived, npm's shims resolve relatively. |
+| **Evidence** | 27 static + 6 stack gates green from a cold `docker compose down -v`, re-run after each move. The cold start is what proves the `infra/` moves: `01_roles.sh` runs only on an empty volume, and the seeder re-reads the CSV through the dataset mount. |
+
+---
+
+## Slice 1 — Dashboard
+
+D9–D17 were taken at spec review, before any code (one line each in
+`_1_Tasks/Dashboard/08_23_2026_slice1_dashboard/spec.md`) and are expanded here. D18–D19 were
+taken during implementation review.
+
+### D9 — Three parameterless chart routes under `/api/dashboard/` *(deliberate deviation)*
+
+|  |  |
+| --- | --- |
+| **Chose** | `GET /api/dashboard/order-volume`, `/delivery-performance`, `/carrier-delay-rate` — no parameters, one fixed call each into the S1.2 engine. `/api/kpis` stays alongside (D17). Not one composed `/api/charts`, not a public generic query API. |
+| **Why** | Which charts show, in what order and display type, is a presentation decision; `/api/charts` puts it behind an HTTP boundary, making a layout change a backend change. Three named routes keep composition in the front-end and give each chart its own oracle — volume Σ 400, delivery performance Σ 359 (304 + 55), carrier delay rate descending from GLS 0.2857. |
+| **Gave up** | `architecture.md` §2 drew `/api/kpis · /api/charts`; that node was edited with a note pointing back here. A fourth chart now needs a backend route — the price of not exposing the engine (D10). |
+
+### D10 — The generic engine is built but not exposed over HTTP
+
+|  |  |
+| --- | --- |
+| **Chose** | The S1.2 metric × group-by × filters engine lives in `calculator/`; only fixed in-process callers reach it (the three chart routes now, `tools/` in Slice 2). No `{metric, group_by, filters}` HTTP surface. |
+| **Why** | Building it here is what makes Slice 2 add zero calculator work, so chat and dashboard physically cannot disagree — architecture Decision 1 made structural rather than promised. Off HTTP, no user string reaches the query builder yet, so the parameter whitelist stays where it belongs (S2.1). |
+| **Gave up** | Nothing in Slice 1 — the cost is deferred: S2.1's whitelist becomes load-bearing on its first day. |
+
+### D11 — shadcn `chart` (Recharts) for all three charts
+
+|  |  |
+| --- | --- |
+| **Chose** | The shadcn `chart` block. Verified: `npx shadcn view chart` pulls `recharts@3.8.0`, exports `ChartContainer` / `ChartTooltip` / `ChartLegend`, themed off our existing CSS variables. |
+| **Why** | Line, stacked bar and bar are three of the six displays `requirement.md` §2.3 requires; Slices 2–3 need the same three plus the forecast line. One dependency covers all of them and inherits our theme — hand-rolled SVG would need re-theming for each. |
+| **Gave up** | **109 kB gzipped** (370.72 kB raw) for three charts, amortised across three slices — 54 % of the 202.92 kB gzipped bundle. Measured, not estimated: one build with `recharts`, `victory-vendor`, `d3-*` and `decimal.js` forced into their own rolldown chunk, which isolates exactly what this decision costs. |
+
+### D12 — ISO week, Monday start, bucket keyed by the Monday's date
+
+|  |  |
+| --- | --- |
+| **Chose** | Week group-by uses ISO weeks from Monday, each bucket keyed by that Monday's `date`, not a `2025-W43` label. |
+| **Why** | A date key sorts correctly as a string, renders on a time axis without parsing, and matches the month key's type, so the front-end has one code path. `date_trunc('week', …)` is Monday-start by definition, so the SQL side is free. |
+| **Gave up** | Labels read as dates, not the week numbers a logistics manager would say. 53 buckets, `2024-12-30` → `2025-12-29`; the first is a 2024 Monday holding January 2025 orders, which looks wrong until you know the rule. |
+| **Status** | Postgres-vs-Python equivalence is **no longer an assumption** — `tests/test_query_oracle.py` asserts it against a live database with buckets derived from the CSV host-side. |
+
+### D13 — The calculator rounds average delivery time and returns a `unit`
+
+|  |  |
+| --- | --- |
+| **Chose** | `calculator/` returns `{"value": 3.8, "unit": "days"}` already rounded, not `3.82973`; every KPI carries a `unit` (`null` for counts, `"%"` for on-time rate). |
+| **Why** | S2.3 forbids any digit in the agent's prose absent from the tool result. Rounding in the UI would make the dashboard print `3.8` while the tool result said `3.82973`, so "about 3.8 days" would be an invented digit by that rule. Rounding once, in the formula's single owner, makes both print the identical string. |
+| **Gave up** | A display concern now lives in the calculator. Bought back: one number, one place, S2.3 stays mechanically checkable. |
+
+### D14 — The carrier chart shows delay **rate**, sorted descending
+
+|  |  |
+| --- | --- |
+| **Chose** | `carrier-delay-rate` returns `delay_rate` per carrier, `value_desc` — nine rows, first GLS 0.2857. Not order counts. |
+| **Why** | `requirement.md` §2.1 permits either; `docs/design/Main.dc.html` settles it — the card reads "Share arriving late, per carrier". A rate also answers the real question: 84 orders with 11 delays is not worse than 7 with 2. |
+| **Gave up** | This chart does not sum to 400, so the "grouped sums back to ungrouped total" cross-check covers only order-volume (Σ 400) and delivery-performance (Σ 359). Its oracle is a per-carrier comparison plus a non-increasing check. |
+
+### D15 — Empty result = HTTP 200, empty `rows`, `params` still echoed
+
+|  |  |
+| --- | --- |
+| **Chose** | A filter matching no rows returns `200` with `"rows": []` and the full `params`. Never 404, never an error. |
+| **Why** | "No orders matched" is a valid answer — the query ran. Echoing `params` is what lets the UI say *which* question returned nothing: the explainability mechanism (`requirement.md` §2.4) that Slice 2 reuses unchanged. |
+| **Gave up** | Callers must check `rows.length === 0` rather than a status code, so an empty state is easier to forget. Every consumer is ours, and the Playwright gate renders the real ones. |
+
+### D16 — Data-table toggle = shadcn `Collapsible` + `Table` inside each chart card
+
+|  |  |
+| --- | --- |
+| **Chose** | Each chart card holds a collapsed `Collapsible` containing a `Table` of that chart's rows. Both verified in the shadcn registry; zero new npm dependencies. |
+| **Why** | §2.3 lists the toggle as a required display, §2.4 counts it as explainability, S1.5 gates it. It is drawn nowhere in `docs/design/Main.dc.html` (verified across all 268 lines), so reusing two registry components keeps the deviation minimal. |
+| **Gave up** | Expanding pushes the page down instead of overlaying. Rejected modal and side sheet: both hide the numbers from the same screenshot as the chart, and `07_table_toggle_screenshot.png` is evidence the two agree. |
+
+### D17 — `/api/kpis` keeps its top-level path
+
+|  |  |
+| --- | --- |
+| **Chose** | The KPI route stays at `/api/kpis`, not `/api/dashboard/kpis`. |
+| **Why** | The tech lead named the three chart routes and not this one; `architecture.md` §2 already drew `/api/kpis`, so leaving it is one fewer deviation to defend — D9 stays the slice's only route-shape deviation. |
+| **Gave up** | Two API shapes side by side: one grouped prefix, one flat route. Cosmetic, reversible in one line. *An implementer-side assumption, stated as such in the spec.* |
+
+### D18 — The calculator owns the SQL expressions; `data/` only executes them *(deliberate deviation)*
+
+|  |  |
+| --- | --- |
+| **Chose** | `calculator/` builds an **unexecuted** SQLAlchemy `Select`; `data/` opens the session and runs it. So `calculator/` may import `sqlalchemy`, but not `psycopg` or `data.engine` / `data.repository`. The Slice 0 contract *"Only the data layer touches the database"* is **split into two** contracts saying exactly this — replaced, not deleted. |
+| **Why** | The only shape where the database does the aggregation *and* architecture Decision 1 holds. Otherwise `count(*) FILTER (WHERE status = 'delayed')` — which **is** the definition of delayed — would live in `data/`, giving a business definition a second home. Verified, not assumed: planting `from sqlalchemy import func` in `calculator/` made the shipped contract report *"…calculator is not allowed to import sqlalchemy"*, which is why it had to be split. |
+| **Gave up** | (a) A Slice 0 contract was edited — weakening a contract until it passes is not passing it. Mitigated: the replacement forbids opening a connection, the thing that actually matters. (b) `calculator/` can no longer be unit-tested without PostgreSQL, so the S1.2 oracle moved behind `-m stack` (D19). (c) A future non-SQL source would need the whole expression map rewritten. |
+| **Rejected** | **Pure-Python calculator** reading all 400 rows into memory. Simplest, and needs no database for the oracle — rejected because the tech lead wants aggregation pushed into the database. |
+| **Rejected** | **Formulas in `data/`, `calculator/` as pass-through.** Violates architecture Decision 1 and leaves `calculator/` as dead weight owning nothing. |
+
+### D19 — Evidence manifest: the oracle tests are reported in `03_green_stack.txt`
+
+|  |  |
+| --- | --- |
+| **Chose** | `02_green_static.txt` (`uv run pytest`) proves ruff, ruff format, mypy, import-linter, the planted violation, structure, deps, health, frontend build/type-check/lint. The S1.1/S1.2 oracle tests are reported in `03_green_stack.txt` (`uv run pytest -m stack`). Both files are required. |
+| **Why** | A direct consequence of D18: a calculator that emits SQL can only be compared against the CSV by executing it. Leaving those tests in the fast gate would mean either a skipped test that reads as green, or a second in-memory implementation of the same formulas — the second home D18 exists to prevent. |
+| **Gave up** | The fast gate no longer proves a single number: it says "the code is well-formed and the layers hold", not "the numbers are right". A reviewer must run both commands, and the correctness gate needs Docker up. |
+
+---
+
+## Slice 2 — Chat: natural-language queries
+
+Taken at design review, before any Slice 2 code. The first transport decision in the project.
+
+### D20 — The chat endpoint streams over SSE *(deliberate deviation)*
+
+|  |  |
+| --- | --- |
+| **Chose** | `POST /api/chat` returns `text/event-stream`: `stage`* (advisory) → one `result` (the whole answer) → `done`. Faults emit `error` then `done`. |
+| **Why** | `docs/design/States.dc.html` state 2 already specifies a progress list, annotated *"Shows progress in the user's words, not the system's."* Plain JSON can only fake that on a timer, and S2.5 allows 30 s. LangGraph emits the milestones already — verified: `langgraph 1.2.11`, `types.py:122`. |
+| **Gave up** | Scope not in `requirement.md`. Every Slice 2 gate must read frames — bounded by one shared test helper. `architecture.md` §2 and §5 edited. Proxy buffering must stay off or frames clump. |
+| **Rejected** | **Token streaming** (`stream_mode="messages"`). Prose is the last step here, so it saves ~1 s of a 3–30 s call while painting model text before S2.3's no-invented-digit check can run. |
+| **Rejected** | **Plain JSON.** Cheapest, and what the gates assume. Overruled: the progress states are shipped design, and SSE wraps the same object, so correctness is untouched. |
+
+### D21 — One answer is one envelope, not one frame per part
+
+|  |  |
+| --- | --- |
+| **Chose** | The `result` frame carries the five fields S2.5 names. One `rows` array feeds the chart, the table toggle and the explainability panel. Rejected shape: a `{type: text \| chart \| table, message}` union. |
+| **Why** | §2.3 display 6 puts the table *under* every chart, so an answer is prose **and** chart **and** table, never one-of-three — and the union has no slot for the §2.4 interpretation required on every answer. Under Recharts (D11) chart rows and table rows are the same array. |
+| **Gave up** | One display per answer — no two-chart answer. §2.3 asks for no more. |
+
+### D22 — No `columns` metadata; the front-end formats numbers
+
+|  |  |
+| --- | --- |
+| **Chose** | Five fields. No `columns` array of label + number format. |
+| **Why** | S2.5 does not name one and there are ~5 metrics. Growing a contract three gates depend on, for cosmetics, is over-engineering. |
+| **Gave up** | The UI must know `delay_rate` is a percent — a presentation fact outside `calculator/`, a small crack in architecture Decision 1. Additive to close later. |
+
+### D23 — One route; closed stage enum; a refusal is not a fault
+
+|  |  |
+| --- | --- |
+| **Chose** | (a) One route — no plain-JSON sibling. (b) Stages are the enum `interpreting` → `querying` → `composing`, not graph node names. (c) S2.4 refusals are a normal `result` with `display: "unsupported"`, `data: null`, no digits; only faults emit `error`. |
+| **Why** | (a) Two surfaces drift; a test frame-reader is cheaper. (b) Backend owns the milestone, UI owns the wording — what the design note asks for — and a graph rename cannot change user-visible text. (c) S2.4 asserts on refusals; the error path would make it assert on an exception. |
+| **Gave up** | No plain-JSON `curl` shortcut; the enum is extended by hand; two response paths to test. **Deviation from the design copy:** its *"Counting across 359 orders…"* loses the figure, since a `stage` frame would have to send a number before the tool produced one. Reversible by giving `querying` a payload. |
 
 ---
 
 ## Corrections made to the specs
 
-- **Dataset path, 08_23_2026.** `data/mock_logistics_data.csv` → `infra/data/mock_logistics_data.csv` in `docs/tasks.md` and `spec.md`, following D8. The file, its 400 rows and every expected number are unchanged — only its location moved.
+All dated 08_23_2026. No acceptance criterion was loosened and no expected number changed.
 
-- **`spec.md` S0.3 status labels.** The spec read `delivered/in_transit/delayed/... = 304/55/27/11/3`. An independent read of `infra/data/mock_logistics_data.csv` gives `delivered 304, delayed 55, in_transit 27, exception 11, canceled 3` — the numbers were right, the labels were swapped. Text corrected; the test derives the mapping from the CSV at runtime, so it can never drift again.
+- **Dataset path.** `data/mock_logistics_data.csv` → `infra/data/mock_logistics_data.csv` in `docs/tasks.md` and `spec.md`, following **D8**. Only the location moved.
+- **Slice gates cited non-existent rows.** Three of the same typo in `docs/tasks.md`: `S1.6` (Slice 1 has S1.1–S1.5), `S2.7 + S2.8` (Slice 2 has S2.1–S2.7) and `S3.4` (Slice 3 has S3.1–S3.3). Confirmed typos; the gates now read **S1.5**, **S2.7** and **S3.3**, and the stale `→ S1.6`, `→ S2.8` and `→ S3.4` were dropped from the Order block so it agrees with the gate lines. No task text and no expected number changed — only the row a gate points at.
+- **Slice 1 S1.4/S1.5.** Rewritten for **D9**: `/api/charts` → three parameterless `/api/dashboard/` routes, `/api/kpis` left top-level, and S1.5 now states the front-end composes the dashboard. A deliberate deviation from `architecture.md` §2, updated when the slice is implemented.
+- **Import-linter contract split + evidence manifest.** Both consequences of **D18**/**D19**: the Slice 0 database contract in `pyproject.toml` was replaced by two contracts (details in D18), `architecture.md` §3 restated the rule in words (§3's Components table also moved "safe query building" off `data/`, since under D18 the calculator builds the statement), `tasks.md` S1.2's auto-check moved from `parametrized unit test` to `parametrized test … runs under pytest -m stack` — its pass-when is unchanged — and the S1.1/S1.2 oracle tests moved from `02_green_static.txt` to `03_green_stack.txt` in the spec's manifest. Recorded here because editing a passing contract should not be silent.
+- **Chat transport and payload.** Four documents edited for **D20–D23**: `architecture.md` §2/§3/§5, `tasks.md` S2.5/S2.6, `requirement.md` decision table rows 5–6. S2.5 asserts the same schema and the same "chat total == KPI endpoint" equality, read out of the final `result` frame.
+- **`spec.md` S0.3 status labels.** The spec's `304/55/27/11/3` had the right numbers with swapped labels; the CSV gives `delivered 304, delayed 55, in_transit 27, exception 11, canceled 3`. Text corrected; the test derives the mapping from the CSV at runtime, so it cannot drift again.
 
 ---
 
 ## AI usage disclosure
 
-This project was built with heavy use of an AI coding assistant (Claude, via Claude Code).
-The assistant read the specification documents, proposed the implementation options above
-with their trade-offs, and wrote the code, the tests and the container configuration after
-a human picked between the options. Every non-trivial decision on this page was reviewed
-and, in two cases (D4a and the initial D4 choice), overruled or changed by the human tech
-lead. Factual claims about third-party behaviour were verified by running them rather than
-recalled — the PostgreSQL read-only findings in D4 come from a probe against a live
-`postgres:17-alpine` container, and the dataset numbers come from an independent read of
-the CSV. All acceptance criteria were executed rather than asserted; the captured run logs
-are held with the task in our internal tracker, and anyone can reproduce them here with the
-two commands below.
+Built with heavy use of an AI coding assistant (Claude, via Claude Code). It read the
+specifications, proposed the options above with their trade-offs, and wrote the code, tests
+and container configuration after a human picked between them. Every non-trivial decision
+here was reviewed by the human tech lead and in two cases (D4a, and the initial D4 choice)
+overruled or changed. Factual claims about third-party behaviour were verified by running
+them, not recalled — the PostgreSQL findings in D4 come from a probe against a live
+`postgres:17-alpine`, and the dataset numbers from an independent read of the CSV. All
+acceptance criteria were executed; run logs are held with the task in our internal tracker,
+and anyone can reproduce them with the two commands below.
 
 ---
 
 ## Verifying this repo
 
-Every acceptance criterion in this slice is a test that shells out and asserts exit 0, so
-"green" is a command's verdict rather than a human claim. From `src/backend/`:
+Every acceptance criterion is a test that shells out and asserts exit 0, so "green" is a
+command's verdict rather than a human claim. From `src/backend/`:
 
 ```bash
 uv run pytest             # 27 static gates
 uv run pytest -m stack    # 6 gates against the live compose stack
 ```
 
-The second set brings the stack up itself. Run `docker compose down -v` first if you want a
-cold start — `infra/db/init/01_roles.sh` executes only on an empty volume, so a warm run
-proves less than it appears to.
+The second set brings the stack up itself. Run `docker compose down -v` first for a cold
+start — `infra/db/init/01_roles.sh` executes only on an empty volume, so a warm run proves
+less than it appears to.
 
 The expected numbers (400 rows; `delivered 304, delayed 55, in_transit 27, exception 11,
 canceled 3`) are derived in `tests/conftest.py` by re-reading
-`infra/data/mock_logistics_data.csv` with the standard library, never from the seeder. If
-the seeder and the oracle ever disagree, the tests fail.
+`infra/data/mock_logistics_data.csv` with the standard library, never from the seeder. If the
+seeder and the oracle ever disagree, the tests fail.
