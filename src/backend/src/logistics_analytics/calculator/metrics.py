@@ -41,10 +41,11 @@ from logistics_analytics.data.models import Order
 #: only these.
 DELIVERY_OUTCOMES: tuple[str, ...] = ("delivered", "delayed")
 
-#: Decimals each rate is rounded to. Four for a 0-1 ratio so a one-in-a-thousand
-#: difference between two carriers is still visible; one for a percentage because the
-#: dashboard card prints "84.7%".
-RATIO_DECIMALS = 4
+#: Decimals each rate is rounded to. Both rates are percentages (D19b).
+#: Two for the delay rate, so a one-in-ten-thousand difference between two carriers is
+#: still visible in the sort; one for the on-time rate, because S1.1 and the design both
+#: pin the KPI card to "84.7%".
+RATE_DECIMALS = 2
 PERCENT_DECIMALS = 1
 
 
@@ -77,15 +78,23 @@ def _finished_orders() -> ColumnElement[Any]:
 
 
 def _delay_rate() -> ColumnElement[Any]:
-    """Share of finished orders that arrived late, as a 0-1 ratio.
+    """Share of finished orders that arrived late, as a percentage.
+
+    A percentage rather than a 0-1 ratio (decision D19b), for the same reason
+    :func:`_on_time_rate` is one: it is the same ratio read from the other end, and two
+    scales for one quantity is the drift architecture Decision 1 exists to prevent. It also
+    keeps the digits out of the browser - under D13 the dashboard and the Slice 2 chat must
+    print the identical number, which they cannot do if React multiplies by 100.
+
+    Two decimals, not one: it carries exactly the information the old 4-decimal ratio did.
 
     ``nullif`` turns a zero denominator into NULL instead of a division error: a carrier
     with nothing finished has no delay rate, which is a different answer from zero and
     must not sort to the top of the "worst carrier" chart.
     """
     return func.round(
-        cast(_delayed_orders(), Numeric) / func.nullif(_finished_orders(), 0),
-        RATIO_DECIMALS,
+        100 * cast(_delayed_orders(), Numeric) / func.nullif(_finished_orders(), 0),
+        RATE_DECIMALS,
     )
 
 

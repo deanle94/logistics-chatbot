@@ -1,13 +1,11 @@
 S1.3 / S1.4 - proof the responses in 04_api_responses.txt came from the REAL running service.
-Source: docker compose logs backend   |  captured 2026-08-23T08:03:04Z (UTC), same window as 04.
+Source: docker compose logs backend   |  captured 2026-08-23T08:39:48Z (UTC), same window as 04.
 
 The compose healthcheck polls /health every 5s, so the raw log is mostly health noise.
 Filtered with: docker compose logs backend | grep -v ' /health '
 
 Note the paths are /kpis and /dashboard/* , NOT /api/... - nginx strips the /api prefix
 (proxy_pass http://backend:8000/ with a trailing slash). That is the proxy hop, working.
-Seven request lines, not four: the four curl calls in 04 plus three repeat GETs used to
-re-sum the chart bodies independently (400 / 359 / sorted-desc).
 
 === startup ===
 backend-1  | INFO:logistics_analytics.main:application configured
@@ -15,22 +13,17 @@ backend-1  | INFO:     Started server process [1]
 backend-1  | INFO:     Waiting for application startup.
 backend-1  | INFO:     Application startup complete.
 backend-1  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-backend-1  | INFO:     172.27.0.4:35876 - "GET /kpis HTTP/1.1" 200 OK
-backend-1  | INFO:     172.27.0.4:35882 - "GET /dashboard/order-volume HTTP/1.1" 200 OK
-backend-1  | INFO:     172.27.0.4:35894 - "GET /dashboard/delivery-performance HTTP/1.1" 200 OK
-backend-1  | INFO:     172.27.0.4:35898 - "GET /dashboard/carrier-delay-rate HTTP/1.1" 200 OK
-backend-1  | INFO:     172.27.0.4:48122 - "GET /dashboard/order-volume HTTP/1.1" 200 OK
-backend-1  | INFO:     172.27.0.4:48128 - "GET /dashboard/delivery-performance HTTP/1.1" 200 OK
-backend-1  | INFO:     172.27.0.4:48130 - "GET /dashboard/carrier-delay-rate HTTP/1.1" 200 OK
+backend-1  | INFO:     172.27.0.4:38554 - "GET /dashboard/carrier-delay-rate HTTP/1.1" 200 OK
+backend-1  | INFO:     172.27.0.4:38570 - "GET /kpis HTTP/1.1" 200 OK
+backend-1  | INFO:     172.27.0.4:48348 - "GET /kpis HTTP/1.1" 200 OK
 
 === the request lines ===
-backend-1  | INFO:     172.27.0.4:35876 - "GET /kpis HTTP/1.1" 200 OK
-backend-1  | INFO:     172.27.0.4:35882 - "GET /dashboard/order-volume HTTP/1.1" 200 OK
-backend-1  | INFO:     172.27.0.4:35894 - "GET /dashboard/delivery-performance HTTP/1.1" 200 OK
-backend-1  | INFO:     172.27.0.4:35898 - "GET /dashboard/carrier-delay-rate HTTP/1.1" 200 OK
-backend-1  | INFO:     172.27.0.4:48122 - "GET /dashboard/order-volume HTTP/1.1" 200 OK
-backend-1  | INFO:     172.27.0.4:48128 - "GET /dashboard/delivery-performance HTTP/1.1" 200 OK
-backend-1  | INFO:     172.27.0.4:48130 - "GET /dashboard/carrier-delay-rate HTTP/1.1" 200 OK
+backend-1  | INFO:     172.27.0.4:38554 - "GET /dashboard/carrier-delay-rate HTTP/1.1" 200 OK
+backend-1  | INFO:     172.27.0.4:38570 - "GET /kpis HTTP/1.1" 200 OK
+backend-1  | INFO:     172.27.0.4:48348 - "GET /kpis HTTP/1.1" 200 OK
+backend-1  | INFO:     172.27.0.4:48358 - "GET /dashboard/order-volume HTTP/1.1" 200 OK
+backend-1  | INFO:     172.27.0.4:48370 - "GET /dashboard/delivery-performance HTTP/1.1" 200 OK
+backend-1  | INFO:     172.27.0.4:48386 - "GET /dashboard/carrier-delay-rate HTTP/1.1" 200 OK
 
 === error scan: any 5xx, traceback or exception in the whole backend log? ===
 matches: 0

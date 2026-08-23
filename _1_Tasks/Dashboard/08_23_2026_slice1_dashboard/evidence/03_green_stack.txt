@@ -1,28 +1,28 @@
 03_green_stack.txt - the correctness gate. Command: uv run pytest -m stack   (from src/backend/)
-Captured 2026-08-23T08:05:16Z (UTC) on branch features/slice1-dashboard,
-from a COLD start: 'docker compose down -v' was run immediately before, so
-infra/db/init/01_roles.sh re-executed on an empty volume and the seeder re-read the CSV.
-A warm run proves less, because the role grants only execute on first boot.
+Captured 2026-08-23T08:40:04Z (UTC) on branch features/slice1-dashboard, from a COLD
+start: 'docker compose down -v' was run immediately before, so infra/db/init/01_roles.sh
+re-executed on an empty volume and the seeder re-read the CSV. A warm run proves less,
+because the role grants only execute on first boot.
 
 Proves, against the real seeded PostgreSQL and a real browser:
   S1.1  the five KPIs equal the CSV oracle, with units
   S1.2  every metric x group-by combination equals the CSV oracle; grouped totals add back
         for the summable metrics; rates and averages are asserted NOT to add back rather
         than skipped; ISO Monday week buckets equal Python's d - timedelta(d.weekday())
-        (decision D12, now proven rather than assumed); a filter matching nothing returns
-        no rows rather than an error (D15)
+        (decision D12, proven not assumed); a filter matching nothing returns no rows (D15)
   S1.3  GET /api/kpis body equals the calculator output field for field
   S1.4  the three chart routes equal the oracle - volume 400, delivery-performance 359,
-        carrier delay rate sorted descending from GLS 0.2857
+        carrier delay rate sorted descending from GLS 28.57 (a percentage, D19b)
   S1.5  Playwright drives the nginx-served page: the five card texts are compared against a
         LIVE /api/kpis response rather than literals, all three chart types render series,
-        and each table toggle reveals exactly the rows that chart's own route returned.
+        each table toggle reveals exactly the rows that chart's own route returned, and the
+        tooltip and table agree on the same digits plus a % sign.
         Screenshots 06 and 07 are written by this run.
   Slice 0 regression: all six original stack gates still pass (row count, status counts,
-        write rejection, re-seed idempotency, health, the Slice 0 browser test).
+        write rejection, re-seed idempotency, health, the Slice 0 browser test - the last
+        retargeted onto a KPI after the health badge was removed, decision D19a).
 
 ================================================================================
-stack down, volumes removed
 ============================= test session starts =============================
 platform win32 -- Python 3.13.2, pytest-9.1.1, pluggy-1.6.0 -- A:\Learning\AI\HongKong_AI_Assessment\src\backend\.venv\Scripts\python.exe
 cachedir: .pytest_cache
@@ -164,6 +164,6 @@ tests/test_stack.py::test_frontend_renders_backend_status_in_a_browser PASSED [1
     from starlette.testclient import TestClient as TestClient  # noqa
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-=============== 125 passed, 140 deselected, 1 warning in 36.19s ===============
+=============== 125 passed, 140 deselected, 1 warning in 39.03s ===============
 
 [exited with code 0]

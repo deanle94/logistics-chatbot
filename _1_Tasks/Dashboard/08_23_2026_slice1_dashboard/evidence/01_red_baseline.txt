@@ -1,56 +1,394 @@
-01_red_baseline.txt — the Slice 1 eval functions fail against pre-Slice-1 code
-================================================================================
+01_red_baseline.txt — the Slice 1 evals fail against code that does not compute the right answer
+================================================================================================
 Spec step 1: "Write them so they FAIL against today's code."
 
-Method (re-runnable): the eight Slice 1 implementation modules were renamed aside,
-leaving the eval tests in place, and pytest was asked to collect them.
+An earlier version of this file achieved red by renaming the Slice 1 modules aside, so the
+eval modules failed to IMPORT. That proves the tests exist. It does not prove they can tell a
+right answer from a wrong one — a test asserting `assert True` would have gone red the same way.
 
-  src/logistics_analytics/calculator/{models,metrics,dimensions,query,kpis}.py
-  src/logistics_analytics/api/{kpis,dashboard}.py
-  src/logistics_analytics/data/repository.py
+This version plants a real defect instead, in two halves, so every assertion RUNS and fails on
+a VALUE. Both halves are re-runnable and both revert themselves in a shell trap, so an
+interrupted run cannot leave the defect behind. The scripts are in the task scratchpad:
+red_calc.sh and red_browser.sh.
 
-Every Slice 1 eval module then fails to import: there is no calculator, no KPI route
-and no chart route to test. That is the red state the implementation had to turn green.
-Marker filter `-m ""` is passed so the stack-marked oracle modules are collected too.
+================================================================================
+HALF 1 of 2 — the backend evals (S1.1, S1.2, S1.3, S1.4)
+================================================================================
+Planted defect: every entry in calculator/metrics.py's METRIC_EXPRESSIONS is pointed at the
+naive "count every row" expression. Every module still imports; every formula is now wrong.
 
-Scope note: this covers the backend evals. The Playwright acceptance test
-(src/frontend/e2e/dashboard.spec.ts) is not reproduced red here — it asserts against a
-container image, so making it red means rebuilding the front-end image without the
-dashboard. Its green run is in 03_green_stack.txt and its screenshots are 06/07.
+This is the sharpest single lever available, because METRIC_EXPRESSIONS is the one place a
+business definition lives (architecture Decision 1). If the definitions could be broken from
+anywhere else, that would itself be the bug.
 
-Command:
-  uv run pytest tests/test_kpis_oracle.py tests/test_query_oracle.py \
-                tests/test_query_statements.py tests/test_api_contract.py \
-                tests/test_api_dashboard_stack.py -m "" --co -q
+--- the planted defect (calculator/metrics.py) ---
+METRIC_EXPRESSIONS: Mapping[Metric, Callable[[], ColumnElement[Any]]] = {
+    Metric.ORDER_COUNT: _order_count,
+    Metric.DELIVERED_ORDERS: _order_count,
+    Metric.DELAYED_ORDERS: _order_count,
+    Metric.DELAY_RATE: _order_count,
+    Metric.ON_TIME_RATE: _order_count,
+    Metric.AVG_DELIVERY_TIME: _order_count,
+    Metric.QUANTITY: _order_count,
+}
 
---------------------------------------------------------------------------------
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-tests\test_query_oracle.py:21: in <module>
-    from logistics_analytics.calculator.models import Filters, GroupBy, Metric, Ordering, QuerySpec
-E   ModuleNotFoundError: No module named 'logistics_analytics.calculator.models'
-_______________ ERROR collecting tests/test_query_statements.py _______________
-ImportError while importing test module 'A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_statements.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Admin\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-tests\test_query_statements.py:16: in <module>
-    from logistics_analytics.api.dashboard import (
-E   ModuleNotFoundError: No module named 'logistics_analytics.api.dashboard'
-_________________ ERROR collecting tests/test_api_contract.py _________________
-ImportError while importing test module 'A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_api_contract.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-C:\Users\Admin\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-tests\test_api_contract.py:20: in <module>
-    from logistics_analytics.main import create_app
-src\logistics_analytics\main.py:15: in <module>
-    from logistics_analytics.api.dashboard import create_dashboard_router
-E   ModuleNotFoundError: No module named 'logistics_analytics.api.dashboard'
+--- every Slice 1 eval module, marker filter off so the oracles are collected ---
+$ uv run pytest tests/test_kpis_oracle.py tests/test_query_oracle.py tests/test_query_statements.py tests/test_api_contract.py -m '' -q
+
+.FFFF..........FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF... [ 37%]
+........................................................................ [ 75%]
+..................................FFF...........                         [100%]
+================================== FAILURES ===================================
+E   AssertionError: assert 400 == 304
+     +  where 400 = KpiValue(value=400, unit=None).value
+     +  and   304 = csv_metric_value([{'client_id': 'CL-1023', 'order_id': 'ORD-2026-267300-0001', 'order_date': '2025-10-19', 'delivery_date': '2025-10-22...': 'CL-1004', 'order_id': 'ORD-2026-642509-0006', 'order_date': '2025-06-15', 'delivery_date': '2025-06-19', ...}, ...], 'delivered_orders')
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_kpis_oracle.py:61: AssertionError: assert 400 == 304
+E   AssertionError: assert 400 == 55
+     +  where 400 = KpiValue(value=400, unit=None).value
+     +  and   55 = csv_metric_value([{'client_id': 'CL-1023', 'order_id': 'ORD-2026-267300-0001', 'order_date': '2025-10-19', 'delivery_date': '2025-10-22...': 'CL-1004', 'order_id': 'ORD-2026-642509-0006', 'order_date': '2025-06-15', 'delivery_date': '2025-06-19', ...}, ...], 'delayed_orders')
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_kpis_oracle.py:71: AssertionError: assert 400 == 55
+E   assert 400 == 84.7 � 0.05
+      
+      comparison failed
+      Obtained: 400
+      Expected: 84.7 � 0.05
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_kpis_oracle.py:89: assert 400 == 84.7 � 0.05
+E   assert 400 == 3.8 � 1.0e-09
+      
+      comparison failed
+      Obtained: 400
+      Expected: 3.8 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_kpis_oracle.py:106: assert 400 == 3.8 � 1.0e-09
+E   assert 400 == 304 � 1.0e-09
+      
+      comparison failed
+      Obtained: 400
+      Expected: 304 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 400 == 304 � 1.0e-09
+E   assert 5 == 4 � 1.0e-09
+      
+      comparison failed
+      Obtained: 5
+      Expected: 4 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 5 == 4 � 1.0e-09
+E   assert 26 == 20 � 1.0e-09
+      
+      comparison failed
+      Obtained: 26
+      Expected: 20 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 26 == 20 � 1.0e-09
+E   assert 63 == 54 � 1.0e-09
+      
+      comparison failed
+      Obtained: 63
+      Expected: 54 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 63 == 54 � 1.0e-09
+E   assert 55 == 0 � 1.0e-09
+      
+      comparison failed
+      Obtained: 55
+      Expected: 0 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 55 == 0 � 1.0e-09
+E   assert 2 == 1 � 1.0e-09
+      
+      comparison failed
+      Obtained: 2
+      Expected: 1 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 2 == 1 � 1.0e-09
+E   assert 43 == 34 � 1.0e-09
+      
+      comparison failed
+      Obtained: 43
+      Expected: 34 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 43 == 34 � 1.0e-09
+E   assert 54 == 40 � 1.0e-09
+      
+      comparison failed
+      Obtained: 54
+      Expected: 40 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 40 � 1.0e-09
+E   assert 54 == 40 � 1.0e-09
+      
+      comparison failed
+      Obtained: 54
+      Expected: 40 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 40 � 1.0e-09
+E   assert 400 == 55 � 1.0e-09
+      
+      comparison failed
+      Obtained: 400
+      Expected: 55 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 400 == 55 � 1.0e-09
+E   assert 5 == 0 � 1.0e-09
+      
+      comparison failed
+      Obtained: 5
+      Expected: 0 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 5 == 0 � 1.0e-09
+E   assert 26 == 3 � 1.0e-09
+      
+      comparison failed
+      Obtained: 26
+      Expected: 3 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 26 == 3 � 1.0e-09
+E   assert 63 == 3 � 1.0e-09
+      
+      comparison failed
+      Obtained: 63
+      Expected: 3 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 63 == 3 � 1.0e-09
+E   assert 304 == 0 � 1.0e-09
+      
+      comparison failed
+      Obtained: 304
+      Expected: 0 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 304 == 0 � 1.0e-09
+E   assert 1 == 0 � 1.0e-09
+      
+      comparison failed
+      Obtained: 1
+      Expected: 0 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 1 == 0 � 1.0e-09
+E   assert 43 == 7 � 1.0e-09
+      
+      comparison failed
+      Obtained: 43
+      Expected: 7 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 43 == 7 � 1.0e-09
+E   assert 54 == 8 � 1.0e-09
+      
+      comparison failed
+      Obtained: 54
+      Expected: 8 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 8 � 1.0e-09
+E   assert 54 == 8 � 1.0e-09
+      
+      comparison failed
+      Obtained: 54
+      Expected: 8 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 8 � 1.0e-09
+E   assert 400 == 15.32 � 1.0e-09
+      
+      comparison failed
+      Obtained: 400
+      Expected: 15.32 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 400 == 15.32 � 1.0e-09
+E   assert 5 == 0.0 � 1.0e-09
+      
+      comparison failed
+      Obtained: 5
+      Expected: 0.0 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 5 == 0.0 � 1.0e-09
+E   assert 26 == 13.04 � 1.0e-09
+      
+      comparison failed
+      Obtained: 26
+      Expected: 13.04 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 26 == 13.04 � 1.0e-09
+E   assert 63 == 5.26 � 1.0e-09
+      
+      comparison failed
+      Obtained: 63
+      Expected: 5.26 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 63 == 5.26 � 1.0e-09
+E   assert 304 == 0.0 � 1.0e-09
+      
+      comparison failed
+      Obtained: 304
+      Expected: 0.0 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 304 == 0.0 � 1.0e-09
+E   assert 1 == 0.0 � 1.0e-09
+      
+      comparison failed
+      Obtained: 1
+      Expected: 0.0 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 1 == 0.0 � 1.0e-09
+E   assert 43 == 17.07 � 1.0e-09
+      
+      comparison failed
+      Obtained: 43
+      Expected: 17.07 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 43 == 17.07 � 1.0e-09
+E   assert 54 == 16.67 � 1.0e-09
+      
+      comparison failed
+      Obtained: 54
+      Expected: 16.67 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 16.67 � 1.0e-09
+E   assert 54 == 16.67 � 1.0e-09
+      
+      comparison failed
+      Obtained: 54
+      Expected: 16.67 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 16.67 � 1.0e-09
+E   assert 400 == 84.7 � 1.0e-09
+      
+      comparison failed
+      Obtained: 400
+      Expected: 84.7 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 400 == 84.7 � 1.0e-09
+E   assert 5 == 100.0 � 1.0e-09
+      
+      comparison failed
+      Obtained: 5
+      Expected: 100.0 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 5 == 100.0 � 1.0e-09
+E   assert 26 == 87.0 � 1.0e-09
+      
+      comparison failed
+      Obtained: 26
+      Expected: 87.0 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 26 == 87.0 � 1.0e-09
+E   assert 63 == 94.7 � 1.0e-09
+      
+      comparison failed
+      Obtained: 63
+      Expected: 94.7 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 63 == 94.7 � 1.0e-09
+E   assert 304 == 100.0 � 1.0e-09
+      
+      comparison failed
+      Obtained: 304
+      Expected: 100.0 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 304 == 100.0 � 1.0e-09
+E   assert 1 == 100.0 � 1.0e-09
+      
+      comparison failed
+      Obtained: 1
+      Expected: 100.0 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 1 == 100.0 � 1.0e-09
+E   assert 43 == 82.9 � 1.0e-09
+      
+      comparison failed
+      Obtained: 43
+      Expected: 82.9 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 43 == 82.9 � 1.0e-09
+E   assert 54 == 83.3 � 1.0e-09
+      
+      comparison failed
+      Obtained: 54
+      Expected: 83.3 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 83.3 � 1.0e-09
+E   assert 54 == 83.3 � 1.0e-09
+      
+      comparison failed
+      Obtained: 54
+      Expected: 83.3 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 83.3 � 1.0e-09
+E   assert 400 == 3.8 � 1.0e-09
+      
+      comparison failed
+      Obtained: 400
+      Expected: 3.8 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 400 == 3.8 � 1.0e-09
+E   assert 5 == 3.8 � 1.0e-09
+      
+      comparison failed
+      Obtained: 5
+      Expected: 3.8 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 5 == 3.8 � 1.0e-09
+E   assert 26 == 3.3 � 1.0e-09
+      
+      comparison failed
+      Obtained: 26
+      Expected: 3.3 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 26 == 3.3 � 1.0e-09
+E   assert 63 == 3.5 � 1.0e-09
+      
+      comparison failed
+      Obtained: 63
+      Expected: 3.5 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 63 == 3.5 � 1.0e-09
+E   assert 304 == 3.3 � 1.0e-09
+      
+      comparison failed
+      Obtained: 304
+      Expected: 3.3 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 304 == 3.3 � 1.0e-09
+E   assert 1 == 3.0 � 1.0e-09
+      
+      comparison failed
+      Obtained: 1
+      Expected: 3.0 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 1 == 3.0 � 1.0e-09
+E   assert 43 == 3.4 � 1.0e-09
+      
+      comparison failed
+      Obtained: 43
+      Expected: 3.4 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 43 == 3.4 � 1.0e-09
+E   assert 54 == 3.7 � 1.0e-09
+      
+      comparison failed
+      Obtained: 54
+      Expected: 3.7 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 3.7 � 1.0e-09
+E   assert 54 == 3.7 � 1.0e-09
+      
+      comparison failed
+      Obtained: 54
+      Expected: 3.7 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 3.7 � 1.0e-09
+E   assert 400 == 1310 � 1.0e-09
+      
+      comparison failed
+      Obtained: 400
+      Expected: 1310 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 400 == 1310 � 1.0e-09
+E   assert 5 == 17 � 1.0e-09
+      
+      comparison failed
+      Obtained: 5
+      Expected: 17 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 5 == 17 � 1.0e-09
+E   assert 26 == 79 � 1.0e-09
+      
+      comparison failed
+      Obtained: 26
+      Expected: 79 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 26 == 79 � 1.0e-09
+E   assert 63 == 196 � 1.0e-09
+      
+      comparison failed
+      Obtained: 63
+      Expected: 196 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 63 == 196 � 1.0e-09
+E   assert 304 == 999 � 1.0e-09
+      
+      comparison failed
+      Obtained: 304
+      Expected: 999 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 304 == 999 � 1.0e-09
+E   assert 1 == 2 � 1.0e-09
+      
+      comparison failed
+      Obtained: 1
+      Expected: 2 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 1 == 2 � 1.0e-09
+E   assert 43 == 196 � 1.0e-09
+      
+      comparison failed
+      Obtained: 43
+      Expected: 196 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 43 == 196 � 1.0e-09
+E   assert 54 == 172 � 1.0e-09
+      
+      comparison failed
+      Obtained: 54
+      Expected: 172 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 172 � 1.0e-09
+E   assert 54 == 172 � 1.0e-09
+      
+      comparison failed
+      Obtained: 54
+      Expected: 172 � 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 172 � 1.0e-09
+E   assert "count(*) FILTER (WHERE orders.status = 'delivered') AS delivered_orders" in 'SELECT to_char(orders.order_date, \'YYYY-MM\') AS "group", count(*) AS delivered_orders, count(*) AS delayed_orders \nFROM orders GROUP BY to_char(orders.order_date, \'YYYY-MM\') ORDER BY to_char(orders.order_date, \'YYYY-MM\')'
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_statements.py:71: assert "count(*) FILTER (WHERE orders.status = 'delivered') AS delivered_orders" in 'SELECT to_char(orders.order_date, \'YYYY-MM\') AS "group", count(*) AS delivered_orders, count(*) AS delayed_orders \nFROM orders GROUP BY to_char(orders.order_date, \'YYYY-MM\') ORDER BY to_char(orders.order_date, \'YYYY-MM\')'
+E   assert "nullif(count(*) FILTER (WHERE orders.status IN ('delivered', 'delayed')), 0)" in 'SELECT orders.carrier AS "group", count(*) AS delay_rate \nFROM orders GROUP BY orders.carrier ORDER BY count(*) DESC NULLS LAST'
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_statements.py:88: assert "nullif(count(*) FILTER (WHERE orders.status IN ('delivered', 'delayed')), 0)" in 'SELECT orders.carrier AS "group", count(*) AS delay_rate \nFROM orders GROUP BY orders.carrier ORDER BY count(*) DESC NULLS LAST'
+E   AssertionError: assert 'avg(orders.delivery_date - orders.order_date)' in 'SELECT count(*) AS order_count, count(*) AS delivered_orders, count(*) AS delayed_orders, count(*) AS on_time_rate, count(*) AS avg_delivery_time \nFROM orders'
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_statements.py:100: AssertionError: assert 'avg(orders.delivery_date - orders.order_date)' in 'SELECT count(*) AS order_count, count(*) AS delivered_orders, count(*) AS delayed_orders, count(*) AS on_time_rate, count(*) AS avg_delivery_time \nFROM orders'
 ============================== warnings summary ===============================
 .venv\Lib\site-packages\fastapi\testclient.py:1
   A:\Learning\AI\HongKong_AI_Assessment\src\backend\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
@@ -58,9 +396,174 @@ E   ModuleNotFoundError: No module named 'logistics_analytics.api.dashboard'
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
 =========================== short test summary info ===========================
-ERROR tests/test_kpis_oracle.py
-ERROR tests/test_query_oracle.py
-ERROR tests/test_query_statements.py
-ERROR tests/test_api_contract.py
-!!!!!!!!!!!!!!!!!!! Interrupted: 4 errors during collection !!!!!!!!!!!!!!!!!!!
-5 tests collected, 4 errors in 0.65s
+FAILED tests/test_kpis_oracle.py::test_delivered_orders_counts_only_the_delivered_status
+FAILED tests/test_kpis_oracle.py::test_delayed_orders_counts_only_the_delayed_status
+FAILED tests/test_kpis_oracle.py::test_on_time_rate_divides_by_the_finished_orders_only
+FAILED tests/test_kpis_oracle.py::test_average_delivery_time_covers_only_rows_with_both_dates
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-none]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-week]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-month]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-carrier]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-status]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-sku]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-product_category]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-region]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-warehouse]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-none]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-week]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-month]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-carrier]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-status]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-sku]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-product_category]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-region]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-warehouse]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-none]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-week]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-month]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-carrier]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-status]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-sku]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-product_category]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-region]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-warehouse]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-none]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-week]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-month]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-carrier]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-status]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-sku]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-product_category]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-region]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-warehouse]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-none]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-week]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-month]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-carrier]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-status]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-sku]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-product_category]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-region]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-warehouse]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-none]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-week]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-month]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-carrier]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-status]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-sku]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-product_category]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-region]
+FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-warehouse]
+FAILED tests/test_query_statements.py::test_delivery_performance_splits_the_two_delivery_outcomes
+FAILED tests/test_query_statements.py::test_carrier_delay_rate_is_a_percentage_sorted_worst_first
+FAILED tests/test_query_statements.py::test_kpi_spec_is_a_single_ungrouped_row
+61 failed, 131 passed, 1 warning in 17.31s
+pytest exit: 1
+
+================================================================================
+HALF 2 of 2 — the browser eval (S1.5)
+================================================================================
+Planted defect: src/App.tsx is replaced by a shell that renders only the heading, and ONLY the
+frontend image is rebuilt. The backend, the calculator and the database stay correct and the
+page is really served by nginx — so the S1.5 assertions fail on a missing dashboard rather than
+on a build error or a dead server.
+
+The one test that still passes is the /api/health proxy check, which does not touch the page.
+That is the control: it shows the stack was genuinely up while the other eight failed.
+
+--- the planted shell (src/App.tsx) ---
+/**
+ * Pre-Slice-1 shell, planted by the red-baseline script. Never committed.
+ *
+ * Renders the heading the Slice 0 gate looks for and nothing else, so every S1.5
+ * assertion has a real page to fail against.
+ */
+export default function App() {
+  return (
+    <main className="p-6">
+      <h1>Logistics Analytics</h1>
+    </main>
+  )
+}
+
+--- rebuilding only the frontend image ---
+ Container logistics-analytics-seeder-1  Exited
+ Container logistics-analytics-backend-1  Healthy
+ Container logistics-analytics-frontend-1  Healthy
+
+$ npx playwright test    (against the dashboard-less bundle)
+
+
+    Error Context: test-results\dashboard-capture-the-dashboard-evidence-screenshots-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\dashboard-capture-the-dashboard-evidence-screenshots-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\dashboard-capture-the-dashboard-evidence-screenshots-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) [chromium] › e2e\health.spec.ts:18:1 › the page renders a KPI fetched through the /api proxy ──
+
+    Test timeout of 30000ms exceeded.
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator: getByTestId('kpi-total_orders-value')
+    Expected: "400"
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toHaveText" with timeout 30000ms
+      - waiting for getByTestId('kpi-total_orders-value')
+      - Test timeout of 30000ms exceeded.
+
+
+      27 |   // Sourced from the backend response, so this fails if the proxy, the API, the calculator
+      28 |   // or the database is down.
+    > 29 |   await expect(page.getByTestId('kpi-total_orders-value')).toHaveText(
+         |                                                            ^
+      30 |     String(kpis.total_orders.value),
+      31 |     { timeout: 30_000 },
+      32 |   )
+        at A:\Learning\AI\HongKong_AI_Assessment\src\frontend\e2e\health.spec.ts:29:60
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\health-the-page-renders-a-KPI-fetched-through-the-api-proxy-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\health-the-page-renders-a-KPI-fetched-through-the-api-proxy-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\health-the-page-renders-a-KPI-fetched-through-the-api-proxy-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\health-the-page-renders-a-KPI-fetched-through-the-api-proxy-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8 failed
+    [chromium] › e2e\dashboard.spec.ts:151:1 › the five KPI cards show exactly what /api/kpis returned 
+    [chromium] › e2e\dashboard.spec.ts:181:1 › the line, stacked bar and bar charts all draw real series 
+    [chromium] › e2e\dashboard.spec.ts:210:1 › the delivery-performance bars are stacked, not drawn side by side 
+    [chromium] › e2e\dashboard.spec.ts:260:1 › a chart tooltip prints the number the route sent, undecorated 
+    [chromium] › e2e\dashboard.spec.ts:287:1 › the dataset counts printed as copy still describe the dataset 
+    [chromium] › e2e\dashboard.spec.ts:313:1 › each data table reveals one row per row its own chart route returned 
+    [chromium] › e2e\dashboard.spec.ts:342:1 › capture the dashboard evidence screenshots ──────────
+    [chromium] › e2e\health.spec.ts:18:1 › the page renders a KPI fetched through the /api proxy ───
+  1 passed (31.2s)
+playwright exit: 1
+
+--- restoring the real bundle ---
+frontend image rebuilt from the real App.tsx
+
+================================================================================
+WHAT THIS PROVES
+================================================================================
+- 61 backend assertions fail on numbers (assert 400 == 304, assert 400 == 55,
+  assert 400 == 84.7 +- 0.05), not on collection errors.
+- 8 browser assertions fail on a real served page missing its cards, chart series and
+  table rows, while the control test on the same stack passes.
+- Both defects were reverted; `git status` on calculator/metrics.py and src/App.tsx is clean,
+  and the green runs in 02_green_static.txt and 03_green_stack.txt were taken afterwards.

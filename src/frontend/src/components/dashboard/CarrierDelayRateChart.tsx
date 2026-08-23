@@ -8,6 +8,7 @@ import {
   type ChartConfig,
 } from '@/components/ui/chart'
 import type { ChartRow } from '@/lib/api'
+import { formatMetricValue } from '@/lib/metricFormat'
 
 type CarrierDelayRateChartProps = {
   rows: ChartRow[]
@@ -23,10 +24,12 @@ const CONFIG = {
  * Horizontal bars, matching the design: carrier names are words of very different lengths,
  * and reading them along a vertical axis beats rotating them under a vertical bar.
  *
- * The rate is plotted as the ratio the backend sent - `0.2857`, not `28.6%`. Rescaling it
- * in the browser would mean two places in the system deciding how this number is printed,
- * and the row order is the backend's too: it sorted worst first, so the chart never
- * re-sorts and can never disagree with its own data table.
+ * The rate is plotted as the number the backend sent - `28.57`, already a percentage
+ * (decision D19b). This file appends the `%` sign and nothing else: rescaling in the browser
+ * would mean two places in the system deciding what this number is, and the Slice 2 chat
+ * would then quote a different figure from the dashboard. The row order is the backend's
+ * too - it sorted worst first, so the chart never re-sorts and can never disagree with its
+ * own data table.
  */
 export function CarrierDelayRateChart({ rows }: CarrierDelayRateChartProps) {
   return (
@@ -41,7 +44,13 @@ export function CarrierDelayRateChart({ rows }: CarrierDelayRateChartProps) {
         margin={{ top: 4, right: 16, bottom: 0, left: 8 }}
       >
         <CartesianGrid horizontal={false} />
-        <XAxis type="number" tickLine={false} axisLine={false} tickMargin={8} />
+        <XAxis
+          type="number"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          tickFormatter={(value: number) => formatMetricValue('delay_rate', value)}
+        />
         <YAxis
           type="category"
           dataKey="group"
@@ -50,7 +59,17 @@ export function CarrierDelayRateChart({ rows }: CarrierDelayRateChartProps) {
           width={110}
           tickMargin={8}
         />
-        <ChartTooltip content={<ChartTooltipContent />} />
+        <ChartTooltip
+          content={
+            <ChartTooltipContent
+              formatter={(value) => (
+                <span className="tabular-nums">
+                  {formatMetricValue('delay_rate', value as number)}
+                </span>
+              )}
+            />
+          }
+        />
         <Bar
           dataKey="delay_rate"
           fill="var(--color-delay_rate)"
