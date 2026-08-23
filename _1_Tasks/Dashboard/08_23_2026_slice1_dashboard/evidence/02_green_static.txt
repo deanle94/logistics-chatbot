@@ -1,14 +1,14 @@
 02_green_static.txt - the fast gate. Command: uv run pytest   (from src/backend/)
-Captured 2026-08-23T08:39:25Z (UTC) on branch features/slice1-dashboard.
+Captured 2026-08-23T08:51:18Z (UTC).
 
-Proves: ruff check, ruff format --check, mypy --strict, import-linter (4 contracts),
-the planted-violation negative test, the layer-structure test, tech-stack deps, health,
-the SQL-builder tests, the API contract tests, the no-formula-outside-calculator guard,
-and the front-end type-check / lint / build.
+Proves: ruff check, ruff format --check, mypy --strict, import-linter (4 contracts), the
+planted-violation negative test, the layer-structure test, tech-stack deps, health, the
+SQL-builder tests, the API contract tests, the no-formula-outside-calculator guard, and the
+front-end type-check / lint / build.
 
 It does NOT prove any number is right - that needs a live database and is in
 03_green_stack.txt. See decision-log D19 for why, and what that costs.
-Slice 0 baseline was 27 passed / 6 deselected; Slice 1 leaves it at 140 / 125.
+Slice 0 baseline was 27 passed / 6 deselected; Slice 1 leaves it at 140 / 126.
 
 ================================================================================
 ============================= test session starts =============================
@@ -17,7 +17,7 @@ rootdir: A:\Learning\AI\HongKong_AI_Assessment\src\backend
 configfile: pyproject.toml
 testpaths: tests
 plugins: anyio-4.14.2, langsmith-0.11.1
-collected 265 items / 125 deselected / 140 selected
+collected 266 items / 126 deselected / 140 selected
 
 tests\test_api_contract.py ........                                      [  5%]
 tests\test_dependencies.py ........                                      [ 11%]
@@ -37,5 +37,5 @@ tests\test_structure.py ......                                           [100%]
     from starlette.testclient import TestClient as TestClient  # noqa
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-=============== 140 passed, 125 deselected, 1 warning in 10.06s ===============
+=============== 140 passed, 126 deselected, 1 warning in 10.59s ===============
 exit code: 0

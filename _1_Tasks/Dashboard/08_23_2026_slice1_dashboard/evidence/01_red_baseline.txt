@@ -36,8 +36,8 @@ METRIC_EXPRESSIONS: Mapping[Metric, Callable[[], ColumnElement[Any]]] = {
 $ uv run pytest tests/test_kpis_oracle.py tests/test_query_oracle.py tests/test_query_statements.py tests/test_api_contract.py -m '' -q
 
 .FFFF..........FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF... [ 37%]
-........................................................................ [ 75%]
-..................................FFF...........                         [100%]
+................................F....................................... [ 74%]
+...................................FFF...........                        [100%]
 ================================== FAILURES ===================================
 E   AssertionError: assert 400 == 304
      +  where 400 = KpiValue(value=400, unit=None).value
@@ -167,30 +167,30 @@ E   assert 54 == 8 ± 1.0e-09
       Obtained: 54
       Expected: 8 ± 1.0e-09
 A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 8 ± 1.0e-09
-E   assert 400 == 15.32 ± 1.0e-09
+E   assert 400 == 15.3 ± 1.0e-09
       
       comparison failed
       Obtained: 400
-      Expected: 15.32 ± 1.0e-09
-A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 400 == 15.32 ± 1.0e-09
+      Expected: 15.3 ± 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 400 == 15.3 ± 1.0e-09
 E   assert 5 == 0.0 ± 1.0e-09
       
       comparison failed
       Obtained: 5
       Expected: 0.0 ± 1.0e-09
 A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 5 == 0.0 ± 1.0e-09
-E   assert 26 == 13.04 ± 1.0e-09
+E   assert 26 == 13.0 ± 1.0e-09
       
       comparison failed
       Obtained: 26
-      Expected: 13.04 ± 1.0e-09
-A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 26 == 13.04 ± 1.0e-09
-E   assert 63 == 5.26 ± 1.0e-09
+      Expected: 13.0 ± 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 26 == 13.0 ± 1.0e-09
+E   assert 63 == 5.3 ± 1.0e-09
       
       comparison failed
       Obtained: 63
-      Expected: 5.26 ± 1.0e-09
-A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 63 == 5.26 ± 1.0e-09
+      Expected: 5.3 ± 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 63 == 5.3 ± 1.0e-09
 E   assert 304 == 0.0 ± 1.0e-09
       
       comparison failed
@@ -203,24 +203,24 @@ E   assert 1 == 0.0 ± 1.0e-09
       Obtained: 1
       Expected: 0.0 ± 1.0e-09
 A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 1 == 0.0 ± 1.0e-09
-E   assert 43 == 17.07 ± 1.0e-09
+E   assert 43 == 17.1 ± 1.0e-09
       
       comparison failed
       Obtained: 43
-      Expected: 17.07 ± 1.0e-09
-A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 43 == 17.07 ± 1.0e-09
-E   assert 54 == 16.67 ± 1.0e-09
+      Expected: 17.1 ± 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 43 == 17.1 ± 1.0e-09
+E   assert 54 == 16.7 ± 1.0e-09
       
       comparison failed
       Obtained: 54
-      Expected: 16.67 ± 1.0e-09
-A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 16.67 ± 1.0e-09
-E   assert 54 == 16.67 ± 1.0e-09
+      Expected: 16.7 ± 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 16.7 ± 1.0e-09
+E   assert 54 == 16.7 ± 1.0e-09
       
       comparison failed
       Obtained: 54
-      Expected: 16.67 ± 1.0e-09
-A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 16.67 ± 1.0e-09
+      Expected: 16.7 ± 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 16.7 ± 1.0e-09
 E   assert 400 == 84.7 ± 1.0e-09
       
       comparison failed
@@ -383,6 +383,12 @@ E   assert 54 == 172 ± 1.0e-09
       Obtained: 54
       Expected: 172 ± 1.0e-09
 A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:89: assert 54 == 172 ± 1.0e-09
+E   assert 800 == 100.0 ± 1.0e-09
+      
+      comparison failed
+      Obtained: 800
+      Expected: 100.0 ± 1.0e-09
+A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_oracle.py:191: assert 800 == 100.0 ± 1.0e-09
 E   assert "count(*) FILTER (WHERE orders.status = 'delivered') AS delivered_orders" in 'SELECT to_char(orders.order_date, \'YYYY-MM\') AS "group", count(*) AS delivered_orders, count(*) AS delayed_orders \nFROM orders GROUP BY to_char(orders.order_date, \'YYYY-MM\') ORDER BY to_char(orders.order_date, \'YYYY-MM\')'
 A:\Learning\AI\HongKong_AI_Assessment\src\backend\tests\test_query_statements.py:71: assert "count(*) FILTER (WHERE orders.status = 'delivered') AS delivered_orders" in 'SELECT to_char(orders.order_date, \'YYYY-MM\') AS "group", count(*) AS delivered_orders, count(*) AS delayed_orders \nFROM orders GROUP BY to_char(orders.order_date, \'YYYY-MM\') ORDER BY to_char(orders.order_date, \'YYYY-MM\')'
 E   assert "nullif(count(*) FILTER (WHERE orders.status IN ('delivered', 'delayed')), 0)" in 'SELECT orders.carrier AS "group", count(*) AS delay_rate \nFROM orders GROUP BY orders.carrier ORDER BY count(*) DESC NULLS LAST'
@@ -454,10 +460,11 @@ FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity
 FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-product_category]
 FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-region]
 FAILED tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-warehouse]
+FAILED tests/test_query_oracle.py::test_the_two_rates_are_one_ratio_read_from_both_ends
 FAILED tests/test_query_statements.py::test_delivery_performance_splits_the_two_delivery_outcomes
 FAILED tests/test_query_statements.py::test_carrier_delay_rate_is_a_percentage_sorted_worst_first
 FAILED tests/test_query_statements.py::test_kpi_spec_is_a_single_ungrouped_row
-61 failed, 131 passed, 1 warning in 17.31s
+62 failed, 131 passed, 1 warning in 17.83s
 pytest exit: 1
 
 ================================================================================
@@ -487,8 +494,8 @@ export default function App() {
 }
 
 --- rebuilding only the frontend image ---
- Container logistics-analytics-seeder-1  Exited
  Container logistics-analytics-backend-1  Healthy
+ Container logistics-analytics-seeder-1  Exited
  Container logistics-analytics-frontend-1  Healthy
 
 $ npx playwright test    (against the dashboard-less bundle)
@@ -552,7 +559,7 @@ $ npx playwright test    (against the dashboard-less bundle)
     [chromium] â€º e2e\dashboard.spec.ts:313:1 â€º each data table reveals one row per row its own chart route returned 
     [chromium] â€º e2e\dashboard.spec.ts:342:1 â€º capture the dashboard evidence screenshots â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     [chromium] â€º e2e\health.spec.ts:18:1 â€º the page renders a KPI fetched through the /api proxy â”€â”€â”€
-  1 passed (31.2s)
+  1 passed (31.4s)
 playwright exit: 1
 
 --- restoring the real bundle ---
