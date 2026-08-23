@@ -98,7 +98,7 @@ slice, and any deliberate deviation from that document.
 | **Gave up** | Filing `data/` under `infra/` understates one of its two roles. The CSV is the seeder's input *and* the test oracle — `conftest.py` re-reads it host-side, in no container at all, to derive 400 and 304/55/27/11/3 independently of the code under test. `infra/` reads as "how it is deployed", which covers only the first role. Overruled by the tech lead in favour of a smaller root; the oracle still works because only the path changed. |
 | **Gave up** | Three governing documents had to be edited to match a folder rename (`docs/tasks.md`, `spec.md`, this file). Editing an acceptance criterion so it matches the filesystem is the wrong direction of travel; recorded below under corrections so the edit is traceable rather than silent. |
 | **Blast radius** | In `docker-compose.yml`: three build contexts, the initdb bind mount, and the dataset bind mount — the *container-side* `DATASET_PATH: /data/...` is unchanged, since only the host half of the mount moved. In `tests/conftest.py`: a new `SRC_ROOT` between `BACKEND_ROOT` and `REPO_ROOT`, and `CSV_PATH`. Three markdown path citations. Nothing else referenced the old paths. The `.venv` had to be rebuilt — `uv` bakes the project's absolute path into the install and the console-script trampolines, so a moved venv fails with `uv trampoline failed to canonicalize script path`. `node_modules` survived the move: npm's Windows shims resolve relatively. |
-| **Evidence** | `evidence/07_src_relocation.txt` — 27 static + 6 stack gates green from a cold `docker compose down -v`, re-run after each move. The cold start is what proves the `infra/` moves: `01_roles.sh` only executes on an empty volume (so `test_application_role_cannot_write` fails if the initdb mount is wrong), and the seeder re-reads the CSV through the dataset mount (so the 400-row and status-count tests fail if that one is wrong). |
+| **Evidence** | 27 static + 6 stack gates green from a cold `docker compose down -v`, re-run after each move — reproduce with the two commands under *Verifying this repo* below. The cold start is what proves the `infra/` moves: `01_roles.sh` only executes on an empty volume (so `test_application_role_cannot_write` fails if the initdb mount is wrong), and the seeder re-reads the CSV through the dataset mount (so the 400-row and status-count tests fail if that one is wrong). |
 
 ---
 
@@ -120,5 +120,27 @@ and, in two cases (D4a and the initial D4 choice), overruled or changed by the h
 lead. Factual claims about third-party behaviour were verified by running them rather than
 recalled — the PostgreSQL read-only findings in D4 come from a probe against a live
 `postgres:17-alpine` container, and the dataset numbers come from an independent read of
-the CSV. All acceptance criteria were executed, and the output is attached as evidence
-rather than asserted.
+the CSV. All acceptance criteria were executed rather than asserted; the captured run logs
+are held with the task in our internal tracker, and anyone can reproduce them here with the
+two commands below.
+
+---
+
+## Verifying this repo
+
+Every acceptance criterion in this slice is a test that shells out and asserts exit 0, so
+"green" is a command's verdict rather than a human claim. From `src/backend/`:
+
+```bash
+uv run pytest             # 27 static gates
+uv run pytest -m stack    # 6 gates against the live compose stack
+```
+
+The second set brings the stack up itself. Run `docker compose down -v` first if you want a
+cold start — `infra/db/init/01_roles.sh` executes only on an empty volume, so a warm run
+proves less than it appears to.
+
+The expected numbers (400 rows; `delivered 304, delayed 55, in_transit 27, exception 11,
+canceled 3`) are derived in `tests/conftest.py` by re-reading
+`infra/data/mock_logistics_data.csv` with the standard library, never from the seeder. If
+the seeder and the oracle ever disagree, the tests fail.
