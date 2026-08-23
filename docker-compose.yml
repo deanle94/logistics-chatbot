@@ -1,0 +1,99 @@
+# Slice 0 stack: database, one-shot seeder, API, front-end.
+#
+# Every value has a local-development default so `docker compose up` works with no
+# .env file (S0.5). Copy .env.example to .env to override; anything non-local MUST.
+#
+# The seeder is a one-shot container, not a service: it is the only thing that
+# connects with write credentials, and the API waits for it to exit 0 before starting.
+
+name: logistics-analytics
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-logistics}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_local_dev}
+      # Consumed by infra/db/init/01_roles.sh on first boot.
+      APP_OWNER_USER: ${APP_OWNER_USER:-app_owner}
+      APP_OWNER_PASSWORD: ${APP_OWNER_PASSWORD:-app_owner_local_dev}
+      APP_RO_USER: ${APP_RO_USER:-app_ro}
+      APP_RO_PASSWORD: ${APP_RO_PASSWORD:-app_ro_local_dev}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./infra/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # Without this the seeder races the database and fails on a refused connection.
+      test:
+        ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-logistics}"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+
+  seeder:
+    build:
+      context: ./src/backend
+    command: ["python", "-m", "logistics_analytics.data.seed"]
+    environment:
+      SEED_DATABASE_URL: postgresql+psycopg://${APP_OWNER_USER:-app_owner}:${APP_OWNER_PASSWORD:-app_owner_local_dev}@db:5432/${POSTGRES_DB:-logistics}
+      DATASET_PATH: /data/mock_logistics_data.csv
+      READ_ONLY_ROLE: ${APP_RO_USER:-app_ro}
+    volumes:
+      # Read-only mount: the source dataset is never modified by anything (CLAUDE.md).
+      - ./infra/data:/data:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    build:
+      context: ./src/backend
+    environment:
+      # The API only ever holds the read-only role's credentials.
+      DATABASE_URL: postgresql+psycopg://${APP_RO_USER:-app_ro}:${APP_RO_PASSWORD:-app_ro_local_dev}@db:5432/${POSTGRES_DB:-logistics}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      seeder:
+        condition: service_completed_successfully
+    healthcheck:
+      # python rather than curl: the slim image has no curl and adding one would grow
+      # the image just to answer a question python can already answer.
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request as r, sys; sys.exit(0 if r.urlopen('http://127.0.0.1:8000/health', timeout=5).status == 200 else 1)",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./src/frontend
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      # 127.0.0.1, not localhost: inside the container localhost resolves to ::1 first
+      # and nginx only binds IPv4, so the check would fail against a healthy server.
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1/"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+
+volumes:
+  db-data:

@@ -1,0 +1,251 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: Geist, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; background: oklch(1 0 0); color: oklch(0.145 0 0); -webkit-font-smoothing: antialiased; }
+    a { color: oklch(0.205 0 0); } a:hover { color: oklch(0.145 0 0); }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="display: flex; width: 1440px; height: 1180px; background: oklch(1 0 0)">
+
+  <!-- SIDEBAR -->
+  <div style="display: flex; flex-direction: column; width: 256px; flex-shrink: 0; background: oklch(0.985 0 0); border-right: 1px solid oklch(0.922 0 0)">
+    <div style="display: flex; align-items: center; gap: 8px; height: 64px; padding: 0 16px; border-bottom: 1px solid oklch(0.922 0 0)">
+      <div style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: oklch(0.205 0 0); color: oklch(0.985 0 0); flex-shrink: 0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+        <span style="font-size: 14px; line-height: 18px; font-weight: 600; letter-spacing: -0.01em">Logistics Analytics</span>
+        <span style="font-size: 12px; line-height: 15px; color: oklch(0.556 0 0)">AI-powered</span>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 4px; padding: 16px 12px; flex-grow: 1">
+      <div style="padding: 0 8px 4px; font-size: 12px; line-height: 16px; font-weight: 500; color: oklch(0.556 0 0)">Platform</div>
+      <div style="display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px; border-radius: 8px; font-size: 14px; font-weight: 400">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"></rect><rect x="14" y="3" width="7" height="5" rx="1"></rect><rect x="14" y="12" width="7" height="9" rx="1"></rect><rect x="3" y="16" width="7" height="5" rx="1"></rect></svg>
+        <span>Dashboard</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px; border-radius: 8px; background: oklch(0.97 0 0); font-size: 14px; font-weight: 500">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path></svg>
+        <span>Ask AI</span>
+      </div>
+    </div>
+
+    <div style="padding: 12px; border-top: 1px solid oklch(0.922 0 0)">
+      <div style="display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border: 1px solid oklch(0.922 0 0); border-radius: 8px; background: oklch(1 0 0)">
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; font-weight: 500">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14a9 3 0 0 0 18 0V5"></path><path d="M3 12a9 3 0 0 0 18 0"></path></svg>
+          <span>mock_logistics_data</span>
+        </div>
+        <span style="font-size: 12px; line-height: 16px; color: oklch(0.556 0 0)">400 rows &middot; read-only</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div style="display: flex; flex-direction: column; flex-grow: 1; min-width: 0">
+
+    <div style="display: flex; align-items: center; justify-content: space-between; height: 64px; padding: 0 24px; border-bottom: 1px solid oklch(0.922 0 0); flex-shrink: 0">
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 14px">
+        <span style="color: oklch(0.556 0 0)">Analytics</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.556 0 0)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+        <span style="font-weight: 500">Ask AI</span>
+      </div>
+      <div style="display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border: 1px solid oklch(0.922 0 0); border-radius: 8px; font-size: 12px; font-weight: 500; color: oklch(0.556 0 0)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        Every number counted from your data
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 24px; padding: 32px 24px; flex-grow: 1; overflow: hidden">
+      <div style="display: flex; flex-direction: column; gap: 24px; width: 880px; margin: 0 auto">
+
+        <div style="display: flex; justify-content: flex-end">
+          <div style="max-width: 70%; padding: 10px 14px; border-radius: 14px; background: oklch(0.205 0 0); color: oklch(0.985 0 0); font-size: 14px; line-height: 21px">
+            Predict demand for SKU-1042 for the next 4 months
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; align-items: flex-start">
+          <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 999px; border: 1px solid oklch(0.922 0 0); background: oklch(0.985 0 0); flex-shrink: 0; margin-top: 2px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.145 0 0)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path></svg>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px; flex-grow: 1; min-width: 0">
+
+            <p style="margin: 0; font-size: 14px; line-height: 22px; text-wrap: pretty">
+              Demand for <strong style="font-weight: 600">SKU-1042</strong> is forecast at <strong style="font-weight: 600">697 units</strong> over the next four months &mdash; roughly flat against the last quarter&rsquo;s 520 units, with the average holding around 174 units a month.
+            </p>
+
+            <!-- FORECAST ANSWER CARD -->
+            <div style="display: flex; flex-direction: column; border: 1px solid oklch(0.922 0 0); border-radius: 14px; background: oklch(1 0 0); box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); overflow: hidden">
+
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px 16px">
+                <div style="display: flex; flex-direction: column; gap: 4px">
+                  <span style="font-size: 16px; line-height: 22px; font-weight: 600; letter-spacing: -0.01em">Demand forecast &mdash; SKU-1042</span>
+                  <span style="font-size: 14px; line-height: 20px; color: oklch(0.556 0 0)">Last 12 months, plus the next 4 projected</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0">
+                  <div style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border: 1px solid oklch(0.922 0 0); border-radius: 8px; font-size: 12px; font-weight: 500; color: oklch(0.556 0 0)">Forecast line</div>
+                  <div style="display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 8px; background: oklch(0.97 0 0)">
+                    <div style="display: flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border-radius: 6px; background: oklch(1 0 0); font-size: 12px; font-weight: 500; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05)">Chart</div>
+                    <div style="display: flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border-radius: 6px; font-size: 12px; font-weight: 500; color: oklch(0.556 0 0)">Table</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2 · VISUALIZATION: history solid + forecast dashed -->
+              <div style="padding: 0 24px 8px">
+                <svg width="100%" viewBox="0 0 832 262" style="display: block">
+                  <rect x="600" y="10" width="220" height="200" fill="oklch(0.97 0 0)" fill-opacity="0.7"></rect>
+                  <g stroke="oklch(0.922 0 0)" stroke-width="1">
+                    <line x1="44" y1="210" x2="820" y2="210"></line><line x1="44" y1="160" x2="820" y2="160"></line>
+                    <line x1="44" y1="110" x2="820" y2="110"></line><line x1="44" y1="60" x2="820" y2="60"></line>
+                    <line x1="44" y1="10" x2="820" y2="10"></line>
+                  </g>
+                  <line x1="600" y1="10" x2="600" y2="210" stroke="oklch(0.556 0 0)" stroke-width="1" stroke-dasharray="3 3"></line>
+                  <text x="608" y="22" fill="oklch(0.556 0 0)" font-size="11" font-family="Geist, system-ui, sans-serif">forecast &rarr;</text>
+                  <g fill="oklch(0.556 0 0)" font-size="11" font-family="Geist, system-ui, sans-serif" text-anchor="end">
+                    <text x="36" y="214">0</text><text x="36" y="164">50</text><text x="36" y="114">100</text><text x="36" y="64">150</text><text x="36" y="14">200</text>
+                  </g>
+
+                  <polyline points="50,90 100,78 150,82 200,65 250,60 300,68 350,52 400,45 450,50 500,38 550,42 600,30" fill="none" stroke="oklch(0.6 0.118 184.704)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                  <polyline points="600,30 650,37 700,36 750,34 800,36" fill="none" stroke="oklch(0.646 0.222 41.116)" stroke-width="2.5" stroke-dasharray="6 5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+
+                  <g fill="oklch(1 0 0)" stroke="oklch(0.6 0.118 184.704)" stroke-width="2">
+                    <circle cx="50" cy="90" r="3"></circle><circle cx="100" cy="78" r="3"></circle><circle cx="150" cy="82" r="3"></circle>
+                    <circle cx="200" cy="65" r="3"></circle><circle cx="250" cy="60" r="3"></circle><circle cx="300" cy="68" r="3"></circle>
+                    <circle cx="350" cy="52" r="3"></circle><circle cx="400" cy="45" r="3"></circle><circle cx="450" cy="50" r="3"></circle>
+                    <circle cx="500" cy="38" r="3"></circle><circle cx="550" cy="42" r="3"></circle><circle cx="600" cy="30" r="3"></circle>
+                  </g>
+                  <g fill="oklch(1 0 0)" stroke="oklch(0.646 0.222 41.116)" stroke-width="2">
+                    <circle cx="650" cy="37" r="3.5"></circle><circle cx="700" cy="36" r="3.5"></circle>
+                    <circle cx="750" cy="34" r="3.5"></circle><circle cx="800" cy="36" r="3.5"></circle>
+                  </g>
+
+                  <g fill="oklch(0.556 0 0)" font-size="11" font-family="Geist, system-ui, sans-serif" text-anchor="middle">
+                    <text x="50" y="230">Jan</text><text x="100" y="230">Feb</text><text x="150" y="230">Mar</text><text x="200" y="230">Apr</text>
+                    <text x="250" y="230">May</text><text x="300" y="230">Jun</text><text x="350" y="230">Jul</text><text x="400" y="230">Aug</text>
+                    <text x="450" y="230">Sep</text><text x="500" y="230">Oct</text><text x="550" y="230">Nov</text><text x="600" y="230">Dec</text>
+                  </g>
+                  <g fill="oklch(0.646 0.222 41.116)" font-size="11" font-weight="500" font-family="Geist, system-ui, sans-serif" text-anchor="middle">
+                    <text x="650" y="230">Jan</text><text x="700" y="230">Feb</text><text x="750" y="230">Mar</text><text x="800" y="230">Apr</text>
+                  </g>
+
+                  <g font-family="Geist, system-ui, sans-serif">
+                    <line x1="50" y1="252" x2="76" y2="252" stroke="oklch(0.6 0.118 184.704)" stroke-width="2.5" stroke-linecap="round"></line>
+                    <text x="84" y="256" fill="oklch(0.556 0 0)" font-size="12">Actual demand</text>
+                    <line x1="200" y1="252" x2="226" y2="252" stroke="oklch(0.646 0.222 41.116)" stroke-width="2.5" stroke-dasharray="6 5" stroke-linecap="round"></line>
+                    <text x="234" y="256" fill="oklch(0.556 0 0)" font-size="12">Forecast</text>
+                  </g>
+                </svg>
+              </div>
+
+              <!-- 1 · FORECAST VALUES -->
+              <div style="padding: 8px 24px 20px">
+                <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px; border: 1px solid oklch(0.922 0 0); border-radius: 8px; background: oklch(0.922 0 0); overflow: hidden">
+                  <div style="display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; background: oklch(1 0 0)">
+                    <span style="font-size: 12px; color: oklch(0.556 0 0)">Jan</span>
+                    <span style="font-size: 20px; line-height: 26px; font-weight: 600; font-variant-numeric: tabular-nums">173</span>
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; background: oklch(1 0 0)">
+                    <span style="font-size: 12px; color: oklch(0.556 0 0)">Feb</span>
+                    <span style="font-size: 20px; line-height: 26px; font-weight: 600; font-variant-numeric: tabular-nums">174</span>
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; background: oklch(1 0 0)">
+                    <span style="font-size: 12px; color: oklch(0.556 0 0)">Mar</span>
+                    <span style="font-size: 20px; line-height: 26px; font-weight: 600; font-variant-numeric: tabular-nums">176</span>
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; background: oklch(1 0 0)">
+                    <span style="font-size: 12px; color: oklch(0.556 0 0)">Apr</span>
+                    <span style="font-size: 20px; line-height: 26px; font-weight: 600; font-variant-numeric: tabular-nums">174</span>
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; background: oklch(0.985 0 0)">
+                    <span style="font-size: 12px; color: oklch(0.556 0 0)">Total</span>
+                    <span style="font-size: 20px; line-height: 26px; font-weight: 600; font-variant-numeric: tabular-nums">697</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3 · INVENTORY RECOMMENDATION -->
+              <div style="display: flex; align-items: flex-start; gap: 14px; padding: 18px 24px; border-top: 1px solid oklch(0.922 0 0); background: oklch(0.985 0 0)">
+                <div style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: oklch(1 0 0); border: 1px solid oklch(0.922 0 0); flex-shrink: 0">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(0.145 0 0)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px; flex-grow: 1; min-width: 0">
+                  <span style="font-size: 13px; font-weight: 600">Inventory recommendation</span>
+                  <p style="margin: 0; font-size: 13px; line-height: 20px; color: oklch(0.145 0 0); text-wrap: pretty">
+                    Stock <strong style="font-weight: 600">802 units</strong> to cover the four-month horizon &mdash; the 697-unit forecast plus a 15% safety buffer. Reorder point <strong style="font-weight: 600">116 units</strong>, based on 174/month demand and a 20-day average lead time.
+                  </p>
+                  <div style="display: flex; gap: 6px; flex-wrap: wrap">
+                    <div style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border: 1px solid oklch(0.922 0 0); border-radius: 8px; background: oklch(1 0 0); font-size: 12px; font-weight: 500; color: oklch(0.556 0 0)">safety buffer 15% &mdash; our assumption</div>
+                    <div style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border: 1px solid oklch(0.922 0 0); border-radius: 8px; background: oklch(1 0 0); font-size: 12px; font-weight: 500; color: oklch(0.556 0 0)">lead time 20 days &mdash; our assumption</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4 · METHODOLOGY -->
+              <div style="display: flex; align-items: flex-start; gap: 14px; padding: 18px 24px; border-top: 1px solid oklch(0.922 0 0); background: oklch(0.985 0 0)">
+                <div style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: oklch(1 0 0); border: 1px solid oklch(0.922 0 0); flex-shrink: 0">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(0.145 0 0)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px; flex-grow: 1; min-width: 0">
+                  <span style="font-size: 13px; font-weight: 600">How this projection was worked out</span>
+                  <p style="margin: 0; font-size: 13px; line-height: 20px; color: oklch(0.556 0 0); text-wrap: pretty">
+                    Each month ahead is the <strong style="font-weight: 500; color: oklch(0.145 0 0)">average of the three months before it</strong>. January uses October, November and December (172, 168 and 180 units), which averages 173. February then uses November, December and the new January figure &mdash; and so on. Monthly demand is the total quantity ordered for this SKU that month.
+                  </p>
+                  <p style="margin: 0; font-size: 13px; line-height: 20px; color: oklch(0.556 0 0); text-wrap: pretty">
+                    <strong style="font-weight: 500; color: oklch(0.145 0 0)">Worth knowing:</strong> averaging smooths things out, so it will not follow a rising trend or a busy season. Demand here grew about 50% over the year but the projection stays flat. Read it as a safe floor rather than an exact figure. We chose it because you can check every number by hand.
+                  </p>
+                </div>
+              </div>
+
+              <!-- explainability trigger -->
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 24px; border-top: 1px solid oklch(0.922 0 0); background: oklch(0.985 0 0)">
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap">
+                  <div style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 8px; background: oklch(0.97 0 0); font-size: 12px; font-weight: 500">SKU-1042</div>
+                  <div style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 8px; background: oklch(0.97 0 0); font-size: 12px; font-weight: 500">Next 4 months</div>
+                  <div style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 8px; background: oklch(0.97 0 0); font-size: 12px; font-weight: 500">12 months of history</div>
+                  <div style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 8px; background: oklch(0.97 0 0); font-size: 12px; font-weight: 500">3-month average</div>
+                </div>
+                <div style="display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border: 1px solid oklch(0.145 0 0); border-radius: 8px; background: oklch(1 0 0); font-size: 12px; font-weight: 500; flex-shrink: 0">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M15 3v18"></path></svg>
+                    Show the working
+                  </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- composer -->
+    <div style="flex-shrink: 0; border-top: 1px solid oklch(0.922 0 0); padding: 16px 24px 20px">
+      <div style="display: flex; flex-direction: column; gap: 10px; width: 880px; margin: 0 auto">
+        <div style="display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 8px 0 16px; border: 1px solid oklch(0.922 0 0); border-radius: 14px; background: oklch(1 0 0); box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05)">
+          <span style="flex-grow: 1; font-size: 14px; color: oklch(0.556 0 0)">Ask about deliveries, carriers, delays or demand&hellip;</span>
+          <div style="display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; background: oklch(0.205 0 0); color: oklch(0.985 0 0); flex-shrink: 0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"></path><path d="M12 19V5"></path></svg>
+          </div>
+        </div>
+        <span style="font-size: 12px; color: oklch(0.556 0 0); text-align: center">Answers are counted from your orders. Nothing is estimated or guessed.</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,24 @@
+# Secrets: only the example file is ever committed.
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Tooling caches
+.import_linter_cache/
+
+# Node
+node_modules/
+dist/
+playwright-report/
+test-results/
+
+# Lavish review artifacts
+.lavish/
+_1_Tasks/
+.obsidian/

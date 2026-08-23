@@ -1,0 +1,125 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: Geist, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; background: oklch(0.97 0 0); color: oklch(0.145 0 0); -webkit-font-smoothing: antialiased; }
+    a { color: oklch(0.205 0 0); } a:hover { color: oklch(0.145 0 0); }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="display: flex; flex-direction: column; gap: 24px; width: 1240px; min-height: 800px; padding: 32px; background: oklch(0.97 0 0)">
+
+  <div style="display: flex; flex-direction: column; gap: 4px">
+    <span style="font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.02em">Layout: where the chat lives</span>
+    <span style="font-size: 14px; line-height: 20px; color: oklch(0.556 0 0)">Two of the three intelligence levels &mdash; diagnostic and predictive &mdash; live in the chat. That makes its placement a real decision, not a detail. Low-fi on purpose: pick the structure, not the pixels.</span>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px">
+
+    <!-- OPTION A -->
+    <div style="display: flex; flex-direction: column; gap: 14px; padding: 24px; border: 1px solid oklch(0.922 0 0); border-radius: 14px; background: oklch(1 0 0)">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="font-size: 16px; font-weight: 600">Option A &mdash; separate surfaces</span>
+        <span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 8px; background: oklch(0.205 0 0); color: oklch(0.985 0 0); font-size: 12px; font-weight: 500">Built above</span>
+      </div>
+
+      <div style="display: flex; height: 300px; border: 1px dashed oklch(0.708 0 0); border-radius: 10px; overflow: hidden; background: oklch(1 0 0)">
+        <div style="display: flex; flex-direction: column; gap: 8px; width: 84px; flex-shrink: 0; padding: 12px 10px; background: oklch(0.97 0 0); border-right: 1px dashed oklch(0.708 0 0)">
+          <div style="height: 12px; border-radius: 3px; background: oklch(0.85 0 0)"></div>
+          <div style="height: 20px; border-radius: 4px; background: oklch(0.556 0 0)"></div>
+          <div style="height: 20px; border-radius: 4px; background: oklch(0.85 0 0)"></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; flex-grow: 1; padding: 14px">
+          <div style="display: flex; gap: 8px">
+            <div style="flex-grow: 1; height: 34px; border-radius: 5px; background: oklch(0.922 0 0)"></div>
+            <div style="flex-grow: 1; height: 34px; border-radius: 5px; background: oklch(0.922 0 0)"></div>
+            <div style="flex-grow: 1; height: 34px; border-radius: 5px; background: oklch(0.922 0 0)"></div>
+            <div style="flex-grow: 1; height: 34px; border-radius: 5px; background: oklch(0.922 0 0)"></div>
+            <div style="flex-grow: 1; height: 34px; border-radius: 5px; background: oklch(0.922 0 0)"></div>
+          </div>
+          <div style="display: flex; gap: 10px; flex-grow: 1">
+            <div style="display: flex; align-items: center; justify-content: center; flex-grow: 2; border-radius: 6px; background: oklch(0.97 0 0); font-size: 12px; color: oklch(0.556 0 0)">chart</div>
+            <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1; border-radius: 6px; background: oklch(0.97 0 0); font-size: 12px; color: oklch(0.556 0 0)">chart</div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: center; height: 68px; border-radius: 6px; background: oklch(0.97 0 0); font-size: 12px; color: oklch(0.556 0 0)">chart</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: flex-start; gap: 8px">
+          <span style="font-size: 13px; font-weight: 600; color: oklch(0.145 0 0); flex-shrink: 0; width: 68px">For</span>
+          <span style="font-size: 13px; line-height: 20px; color: oklch(0.556 0 0); text-wrap: pretty">Each surface gets the full width. The chat answer card can be 880px wide with a real chart in it &mdash; a forecast card needs that room. Matches the requirement&rsquo;s own wording.</span>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 8px">
+          <span style="font-size: 13px; font-weight: 600; color: oklch(0.145 0 0); flex-shrink: 0; width: 68px">Against</span>
+          <span style="font-size: 13px; line-height: 20px; color: oklch(0.556 0 0); text-wrap: pretty">A reviewer who lands on the dashboard may never click through to the chat &mdash; and the chat is where the AI work is. One nav item is thin protection against that.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPTION B -->
+    <div style="display: flex; flex-direction: column; gap: 14px; padding: 24px; border: 1px solid oklch(0.922 0 0); border-radius: 14px; background: oklch(1 0 0)">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="font-size: 16px; font-weight: 600">Option B &mdash; split canvas</span>
+        <span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border: 1px solid oklch(0.922 0 0); border-radius: 8px; font-size: 12px; font-weight: 500; color: oklch(0.556 0 0)">Sketch only</span>
+      </div>
+
+      <div style="display: flex; height: 300px; border: 1px dashed oklch(0.708 0 0); border-radius: 10px; overflow: hidden; background: oklch(1 0 0)">
+        <div style="display: flex; flex-direction: column; gap: 10px; flex-grow: 3; padding: 14px; border-right: 1px dashed oklch(0.708 0 0)">
+          <div style="display: flex; gap: 6px">
+            <div style="flex-grow: 1; height: 30px; border-radius: 5px; background: oklch(0.922 0 0)"></div>
+            <div style="flex-grow: 1; height: 30px; border-radius: 5px; background: oklch(0.922 0 0)"></div>
+            <div style="flex-grow: 1; height: 30px; border-radius: 5px; background: oklch(0.922 0 0)"></div>
+            <div style="flex-grow: 1; height: 30px; border-radius: 5px; background: oklch(0.922 0 0)"></div>
+            <div style="flex-grow: 1; height: 30px; border-radius: 5px; background: oklch(0.922 0 0)"></div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1; border-radius: 6px; background: oklch(0.97 0 0); font-size: 12px; color: oklch(0.556 0 0)">chart</div>
+          <div style="display: flex; align-items: center; justify-content: center; height: 76px; border-radius: 6px; background: oklch(0.97 0 0); font-size: 12px; color: oklch(0.556 0 0)">chart</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; flex-grow: 2; padding: 14px; background: oklch(0.985 0 0)">
+          <div style="display: flex; justify-content: flex-end">
+            <div style="width: 62%; height: 26px; border-radius: 8px; background: oklch(0.556 0 0)"></div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <div style="width: 88%; height: 9px; border-radius: 4px; background: oklch(0.922 0 0)"></div>
+            <div style="width: 66%; height: 9px; border-radius: 4px; background: oklch(0.922 0 0)"></div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1; border: 1px solid oklch(0.922 0 0); border-radius: 6px; font-size: 12px; color: oklch(0.556 0 0)">answer card</div>
+          <div style="height: 34px; border: 1px solid oklch(0.708 0 0); border-radius: 8px"></div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: flex-start; gap: 8px">
+          <span style="font-size: 13px; font-weight: 600; color: oklch(0.145 0 0); flex-shrink: 0; width: 68px">For</span>
+          <span style="font-size: 13px; line-height: 20px; color: oklch(0.556 0 0); text-wrap: pretty">The AI feature is unmissable &mdash; it is on screen from the first second. A manager can read a KPI and immediately interrogate it without losing the dashboard.</span>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 8px">
+          <span style="font-size: 13px; font-weight: 600; color: oklch(0.145 0 0); flex-shrink: 0; width: 68px">Against</span>
+          <span style="font-size: 13px; line-height: 20px; color: oklch(0.556 0 0); text-wrap: pretty">The chat column caps out near 500px. A forecast card carrying a chart, four values, a recommendation and a methodology note does not fit that width without becoming a scroll tunnel. It also breaks below ~1280px.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="display: flex; align-items: flex-start; gap: 12px; padding: 18px 20px; border: 1px solid oklch(0.922 0 0); border-radius: 14px; background: oklch(1 0 0)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="oklch(0.145 0 0)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 13px; font-weight: 600">Recommendation &mdash; A, with the discoverability hole plugged</span>
+      <span style="font-size: 13px; line-height: 20px; color: oklch(0.556 0 0); text-wrap: pretty">Take Option A for the room, then fix its one weakness cheaply: put an always-visible ask bar at the top of the dashboard that submits straight into the chat. That buys Option B&rsquo;s discoverability without paying its width cost. It is a few lines of UI, not a second layout.</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

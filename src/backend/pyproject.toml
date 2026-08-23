@@ -1,0 +1,128 @@
+[project]
+name = "logistics-analytics"
+version = "0.1.0"
+description = "AI-powered logistics analytics dashboard - Slice 0 skeleton"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    # Tech stack required by docs/technical-stack.md and checked by S0.6.
+    "fastapi>=0.141.1",
+    "uvicorn[standard]>=0.52.4",
+    "sqlalchemy>=2.0.52",
+    "psycopg[binary]>=3.3.4",
+    "pydantic>=2.13.4",
+    "pydantic-settings>=2.15.0",
+    # Installed but unused in Slice 0 - the agent layer is a placeholder. Declared
+    # here because S0.6 requires the stack to be present from the skeleton onward.
+    "langchain>=1.3.16",
+    "langgraph>=1.2.11",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "httpx>=0.28.1",
+    "ruff>=0.16.4",
+    "mypy>=2.3.1",
+    "import-linter>=2.13",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/logistics_analytics"]
+
+# --------------------------------------------------------------------------------------
+# Coding rules 1-2: style and typing are enforced by tooling, never by eye.
+# --------------------------------------------------------------------------------------
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F",   # pycodestyle + pyflakes
+    "I",             # import sorting
+    "N",             # pep8 naming
+    "UP",            # pyupgrade
+    "B",             # bugbear - catches rule 4 (mutable default arguments)
+    "C4", "SIM", "RET", "PTH", "RUF",
+    "ARG",           # unused arguments
+    "ANN",           # rule 1 - type hints everywhere
+    "D",             # rule 10 - docstrings
+    "S",             # rule 8 - no eval/exec/unsafe pickle
+    "T20",           # rule 7 - logging, never print
+    "TID",           # tidy imports
+    "BLE",           # rule 3 - no blind except
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# Tests assert (S101) and shell out to the tooling they are gating (S603/S607).
+"tests/**" = ["S101", "S603", "S607", "D100", "D104"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+files = ["src", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+# Static gates run by default; anything needing the docker stack is opt-in so the
+# fast feedback loop stays fast. Slice gate: `pytest -m stack`.
+addopts = "-m 'not stack'"
+markers = [
+    "stack: requires the full docker compose stack (brought up by the compose_stack fixture)",
+]
+
+# --------------------------------------------------------------------------------------
+# S0.2 - the architecture import boundaries (docs/architecture.md section 3).
+# These contracts ARE the layer boundaries; there is no process boundary to rely on.
+# --------------------------------------------------------------------------------------
+
+[tool.importlinter]
+root_package = "logistics_analytics"
+# Required because the third contract names external modules (sqlalchemy, psycopg).
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "AI interpretation never reaches data computation"
+type = "forbidden"
+source_modules = ["logistics_analytics.agent"]
+forbidden_modules = [
+    "logistics_analytics.calculator",
+    "logistics_analytics.data",
+]
+
+[[tool.importlinter.contracts]]
+name = "Data computation never reaches AI interpretation"
+type = "forbidden"
+source_modules = [
+    "logistics_analytics.calculator",
+    "logistics_analytics.data",
+]
+forbidden_modules = ["logistics_analytics.agent"]
+
+[[tool.importlinter.contracts]]
+name = "Only the data layer touches the database"
+type = "forbidden"
+source_modules = [
+    "logistics_analytics.agent",
+    "logistics_analytics.api",
+    "logistics_analytics.tools",
+    "logistics_analytics.calculator",
+]
+forbidden_modules = ["sqlalchemy", "psycopg"]
+# Indirect imports are allowed here on purpose: the rule is "only data/ *touches* the
+# database", so api/ and calculator/ may call into data/ (which does use SQLAlchemy)
+# while being forbidden from importing the driver themselves. The two contracts above
+# deliberately keep the default, where an indirect leak through a helper is a failure.
+allow_indirect_imports = true

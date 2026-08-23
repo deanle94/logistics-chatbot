@@ -1,0 +1,115 @@
+{
+  "pages": [
+    {
+      "id": "page-1",
+      "name": "Screens"
+    },
+    {
+      "id": "page-2",
+      "name": "Reference"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "Dashboard",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1000,
+      "page": "page-1"
+    },
+    {
+      "file": "Chat.dc.html",
+      "title": "Ask AI — query answer",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 1000,
+      "page": "page-1"
+    },
+    {
+      "file": "ChatForecast.dc.html",
+      "title": "Ask AI — forecast answer",
+      "x": 3120,
+      "y": 0,
+      "w": 1440,
+      "h": 1180,
+      "page": "page-1"
+    },
+    {
+      "file": "Explainability.dc.html",
+      "title": "Show the working — side sheet",
+      "x": 0,
+      "y": 1320,
+      "w": 1440,
+      "h": 1000,
+      "page": "page-1"
+    },
+    {
+      "file": "States.dc.html",
+      "title": "Chat states",
+      "x": 1560,
+      "y": 1320,
+      "w": 1440,
+      "h": 900,
+      "page": "page-1"
+    },
+    {
+      "file": "AnswerTypes.dc.html",
+      "title": "Chart types — full card UI",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 2020,
+      "page": "page-2"
+    },
+    {
+      "file": "LayoutOptions.dc.html",
+      "title": "Layout options",
+      "x": 2040,
+      "y": 0,
+      "w": 1240,
+      "h": 800,
+      "page": "page-2"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "data-provenance",
+      "x": 0,
+      "y": -260,
+      "w": 660,
+      "page": "page-1",
+      "text": "Which numbers are real\n\n400 / 304 / 55 / 84.7% and the 27 + 11 + 3 exclusions come straight from docs/business-definition.md.\n\nEverything else is sample data, shaped to reconcile with those totals: per-carrier late counts sum to 55, counted rows sum to 359, monthly order volumes sum to 400.\n\nAverage delivery time shows [N.N] because that figure is not in the docs yet. Carrier names and SKU-1042 demand are invented — swap them for the real dataset values."
+    },
+    {
+      "id": "design-tokens",
+      "x": 740,
+      "y": -260,
+      "w": 640,
+      "page": "page-1",
+      "text": "Design system: shadcn defaults, untouched\n\n--radius 0.625rem → cards 14px, buttons/inputs/badges 8px, chart bars 6px.\nButton and Input h-9 = 36px. Sidebar 16rem = 256px. Header 64px. Page padding 24px, grid gap 16px.\n\nColors are the literal --chart-1..5 and neutral oklch() tokens, so wiring Recharts to var(--chart-1) reproduces these exactly. Type is Geist; PNG/PDF export falls back to system-ui."
+    },
+    {
+      "id": "panel-decision",
+      "x": 1460,
+      "y": -260,
+      "w": 640,
+      "page": "page-1",
+      "text": "\"Show the working\" — a side sheet, four blocks\n\nshadcn Sheet, side=\"right\", 480px. The chart stays visible on the left while the working scrolls on the right. Below ~1024px it should go full-width.\n\n1. Filters used — dates, carriers, what was included\n2. What was measured — the figure, the formula with real numbers, the breakdown. Only rendered for KPIs and calculated numbers; a plain list answer skips this block.\n3. The steps I took — the agent plan\n4. Data used — a one-line summary plus the two buttons\n\nWritten for the logistics manager, not a developer: no JSON, no field names, no module names."
+    },
+    {
+      "id": "reference-note",
+      "x": 0,
+      "y": -180,
+      "w": 620,
+      "page": "page-2",
+      "text": "Reference sheets, not screens.\n\nLeft: every chart type inside the full AnswerCard, at the real 900px width, with the shared anatomy spelled out on top and the per-type rules under each card. Build the shell once; these six are just the body.\n\nRight: the layout decision behind the Screens page, with the tradeoff written down."
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "page-2"
+  }
+}

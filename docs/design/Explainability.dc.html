@@ -1,0 +1,243 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: Geist, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; background: oklch(1 0 0); color: oklch(0.145 0 0); -webkit-font-smoothing: antialiased; }
+    a { color: oklch(0.205 0 0); } a:hover { color: oklch(0.145 0 0); }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="position: relative; width: 1440px; height: 1000px; background: oklch(1 0 0); overflow: hidden">
+
+  <!-- ================= APP BEHIND THE SHEET ================= -->
+  <div style="display: flex; width: 1440px; height: 1000px">
+
+    <div style="display: flex; flex-direction: column; width: 256px; flex-shrink: 0; background: oklch(0.985 0 0); border-right: 1px solid oklch(0.922 0 0)">
+      <div style="display: flex; align-items: center; gap: 8px; height: 64px; padding: 0 16px; border-bottom: 1px solid oklch(0.922 0 0)">
+        <div style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: oklch(0.205 0 0); color: oklch(0.985 0 0); flex-shrink: 0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+          <span style="font-size: 14px; line-height: 18px; font-weight: 600; letter-spacing: -0.01em">Logistics Analytics</span>
+          <span style="font-size: 12px; line-height: 15px; color: oklch(0.556 0 0)">AI-powered</span>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; padding: 16px 12px; flex-grow: 1">
+        <div style="padding: 0 8px 4px; font-size: 12px; line-height: 16px; font-weight: 500; color: oklch(0.556 0 0)">Platform</div>
+        <div style="display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px; border-radius: 8px; font-size: 14px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"></rect><rect x="14" y="3" width="7" height="5" rx="1"></rect><rect x="14" y="12" width="7" height="9" rx="1"></rect><rect x="3" y="16" width="7" height="5" rx="1"></rect></svg>
+          <span>Dashboard</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px; border-radius: 8px; background: oklch(0.97 0 0); font-size: 14px; font-weight: 500">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path></svg>
+          <span>Ask AI</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; flex-grow: 1; min-width: 0">
+      <div style="display: flex; align-items: center; height: 64px; padding: 0 24px; border-bottom: 1px solid oklch(0.922 0 0); flex-shrink: 0">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 14px">
+          <span style="color: oklch(0.556 0 0)">Analytics</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.556 0 0)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+          <span style="font-weight: 500">Ask AI</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 20px; padding: 28px 24px; flex-grow: 1; overflow: hidden">
+        <div style="display: flex; justify-content: flex-end">
+          <div style="max-width: 70%; padding: 10px 14px; border-radius: 14px; background: oklch(0.205 0 0); color: oklch(0.985 0 0); font-size: 14px; line-height: 21px">Which carrier has the highest delay rate?</div>
+        </div>
+
+        <div style="display: flex; gap: 12px; align-items: flex-start">
+          <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 999px; border: 1px solid oklch(0.922 0 0); background: oklch(0.985 0 0); flex-shrink: 0; margin-top: 2px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.145 0 0)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path></svg>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px; flex-grow: 1; min-width: 0">
+            <p style="margin: 0; font-size: 14px; line-height: 22px; text-wrap: pretty"><strong style="font-weight: 600">Northwind Freight</strong> has the highest delay rate at <strong style="font-weight: 600">21.4%</strong> &mdash; 12 of its 56 orders were delayed.</p>
+
+            <div style="display: flex; flex-direction: column; border: 1px solid oklch(0.922 0 0); border-radius: 14px; background: oklch(1 0 0); box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); overflow: hidden">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 20px 14px">
+                <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+                  <span style="font-size: 15px; line-height: 21px; font-weight: 600; letter-spacing: -0.01em">Late deliveries by carrier</span>
+                  <span style="font-size: 13px; line-height: 19px; color: oklch(0.556 0 0)">359 orders that have arrived or were marked late</span>
+                </div>
+                <div style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border: 1px solid oklch(0.922 0 0); border-radius: 8px; font-size: 12px; font-weight: 500; color: oklch(0.556 0 0); flex-shrink: 0">Bar chart</div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 10px; padding: 0 20px 16px">
+                <div style="display: flex; align-items: center; gap: 12px">
+                  <span style="width: 132px; flex-shrink: 0; font-size: 13px; font-weight: 500">Northwind Freight</span>
+                  <div style="flex-grow: 1; height: 22px; border-radius: 6px; background: oklch(0.97 0 0); overflow: hidden"><div style="width: 85.7%; height: 100%; border-radius: 6px; background: oklch(0.646 0.222 41.116)"></div></div>
+                  <span style="width: 48px; flex-shrink: 0; text-align: right; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">21.4%</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px">
+                  <span style="width: 132px; flex-shrink: 0; font-size: 13px; font-weight: 500">Cascade Logistics</span>
+                  <div style="flex-grow: 1; height: 22px; border-radius: 6px; background: oklch(0.97 0 0); overflow: hidden"><div style="width: 73.7%; height: 100%; border-radius: 6px; background: oklch(0.646 0.222 41.116)"></div></div>
+                  <span style="width: 48px; flex-shrink: 0; text-align: right; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">18.4%</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px">
+                  <span style="width: 132px; flex-shrink: 0; font-size: 13px; font-weight: 500">Meridian Express</span>
+                  <div style="flex-grow: 1; height: 22px; border-radius: 6px; background: oklch(0.97 0 0); overflow: hidden"><div style="width: 60.5%; height: 100%; border-radius: 6px; background: oklch(0.646 0.222 41.116)"></div></div>
+                  <span style="width: 48px; flex-shrink: 0; text-align: right; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">15.1%</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px">
+                  <span style="width: 132px; flex-shrink: 0; font-size: 13px; font-weight: 500">Harbor Line</span>
+                  <div style="flex-grow: 1; height: 22px; border-radius: 6px; background: oklch(0.97 0 0); overflow: hidden"><div style="width: 48.8%; height: 100%; border-radius: 6px; background: oklch(0.646 0.222 41.116)"></div></div>
+                  <span style="width: 48px; flex-shrink: 0; text-align: right; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">12.2%</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px">
+                  <span style="width: 132px; flex-shrink: 0; font-size: 13px; font-weight: 500">Vertex Courier</span>
+                  <div style="flex-grow: 1; height: 22px; border-radius: 6px; background: oklch(0.97 0 0); overflow: hidden"><div style="width: 40.7%; height: 100%; border-radius: 6px; background: oklch(0.646 0.222 41.116)"></div></div>
+                  <span style="width: 48px; flex-shrink: 0; text-align: right; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">10.2%</span>
+                </div>
+              </div>
+
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; border-top: 1px solid oklch(0.922 0 0); background: oklch(0.985 0 0)">
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap">
+                  <div style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 8px; background: oklch(0.97 0 0); font-size: 12px; font-weight: 500">Share arriving late</div>
+                  <div style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 8px; background: oklch(0.97 0 0); font-size: 12px; font-weight: 500">Per carrier</div>
+                  <div style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 8px; background: oklch(0.97 0 0); font-size: 12px; font-weight: 500">All dates</div>
+                  <div style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 8px; background: oklch(0.97 0 0); font-size: 12px; font-weight: 500">359 orders counted</div>
+                </div>
+                <div style="display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border: 1px solid oklch(0.145 0 0); border-radius: 8px; background: oklch(1 0 0); font-size: 12px; font-weight: 500; flex-shrink: 0">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M15 3v18"></path></svg>
+                  Show the working
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SHEET OVERLAY ================= -->
+  <div style="position: absolute; top: 0; left: 0; width: 1440px; height: 1000px; background: rgb(0 0 0 / 0.5)"></div>
+
+  <!-- ================= SHEET (side=right, 480px) ================= -->
+  <div style="position: absolute; top: 0; right: 0; display: flex; flex-direction: column; width: 480px; height: 1000px; background: oklch(1 0 0); border-left: 1px solid oklch(0.922 0 0); box-shadow: -8px 0 24px -6px rgb(0 0 0 / 0.18)">
+
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 22px 24px 16px; border-bottom: 1px solid oklch(0.922 0 0); flex-shrink: 0">
+      <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+        <span style="font-size: 16px; line-height: 22px; font-weight: 600; letter-spacing: -0.01em">Where this number comes from</span>
+        <span style="font-size: 13px; line-height: 19px; color: oklch(0.556 0 0)">Counted from your own orders &mdash; here is exactly how.</span>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(0.556 0 0)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 24px; padding: 22px 24px; flex-grow: 1; overflow: hidden">
+
+      <!-- 1 · FILTERS USED -->
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(0.556 0 0)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+          <span style="font-size: 13px; font-weight: 600">Filters used</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 1px; border: 1px solid oklch(0.922 0 0); border-radius: 8px; background: oklch(0.922 0 0); overflow: hidden">
+          <div style="display: flex; align-items: baseline; gap: 12px; padding: 10px 14px; background: oklch(1 0 0)">
+            <span style="width: 88px; flex-shrink: 0; font-size: 12px; color: oklch(0.556 0 0)">Dates</span>
+            <span style="font-size: 12.5px; line-height: 18px; font-weight: 500">All orders &mdash; you didn&rsquo;t set a period</span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 12px; padding: 10px 14px; background: oklch(1 0 0)">
+            <span style="width: 88px; flex-shrink: 0; font-size: 12px; color: oklch(0.556 0 0)">Carriers</span>
+            <span style="font-size: 12.5px; line-height: 18px; font-weight: 500">All 5</span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 12px; padding: 10px 14px; background: oklch(1 0 0)">
+            <span style="width: 88px; flex-shrink: 0; font-size: 12px; color: oklch(0.556 0 0)">Included</span>
+            <span style="font-size: 12.5px; line-height: 18px; font-weight: 500">Only orders that finished &mdash; arrived, or marked late</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2 · METRIC AND BREAKDOWN -->
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(0.556 0 0)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>
+          <span style="font-size: 13px; font-weight: 600">What was measured</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 1px; border: 1px solid oklch(0.922 0 0); border-radius: 8px; background: oklch(0.922 0 0); overflow: hidden">
+          <div style="display: flex; align-items: baseline; gap: 12px; padding: 10px 14px; background: oklch(1 0 0)">
+            <span style="width: 88px; flex-shrink: 0; font-size: 12px; color: oklch(0.556 0 0)">Figure</span>
+            <span style="font-size: 12.5px; line-height: 18px; font-weight: 500">Share of orders that arrived late</span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 12px; padding: 10px 14px; background: oklch(1 0 0)">
+            <span style="width: 88px; flex-shrink: 0; font-size: 12px; color: oklch(0.556 0 0)">Worked out as</span>
+            <span style="font-size: 12.5px; line-height: 19px; font-weight: 500">late &divide; (arrived on time + late)<br><span style="color: oklch(0.556 0 0); font-weight: 400">Northwind: 12 &divide; (44 + 12) = 21.4%</span></span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 12px; padding: 10px 14px; background: oklch(1 0 0)">
+            <span style="width: 88px; flex-shrink: 0; font-size: 12px; color: oklch(0.556 0 0)">Split by</span>
+            <span style="font-size: 12.5px; line-height: 18px; font-weight: 500">Carrier &mdash; 5 groups</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 · QUERY PLAN -->
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(0.556 0 0)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M3 6h.01"></path><path d="M3 12h.01"></path><path d="M3 18h.01"></path></svg>
+          <span style="font-size: 13px; font-weight: 600">The steps I took</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 1px; border: 1px solid oklch(0.922 0 0); border-radius: 8px; background: oklch(0.922 0 0); overflow: hidden">
+          <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: oklch(1 0 0)">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 999px; background: oklch(0.97 0 0); font-size: 11px; font-weight: 600; flex-shrink: 0">1</span>
+            <span style="font-size: 12.5px; line-height: 18px">Worked out what you wanted counted</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: oklch(1 0 0)">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 999px; background: oklch(0.97 0 0); font-size: 11px; font-weight: 600; flex-shrink: 0">2</span>
+            <span style="font-size: 12.5px; line-height: 18px">Pulled the orders that have finished</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: oklch(1 0 0)">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 999px; background: oklch(0.97 0 0); font-size: 11px; font-weight: 600; flex-shrink: 0">3</span>
+            <span style="font-size: 12.5px; line-height: 18px">Grouped them by carrier and worked out each share</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: oklch(1 0 0)">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 999px; background: oklch(0.97 0 0); font-size: 11px; font-weight: 600; flex-shrink: 0">4</span>
+            <span style="font-size: 12.5px; line-height: 18px">Sorted the carriers from worst to best</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 · DATA USED -->
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(0.556 0 0)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14a9 3 0 0 0 18 0V5"></path><path d="M3 12a9 3 0 0 0 18 0"></path></svg>
+          <span style="font-size: 13px; font-weight: 600">Data used</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px; padding: 14px; border: 1px solid oklch(0.922 0 0); border-radius: 8px; background: oklch(0.985 0 0)">
+          <div style="display: flex; flex-direction: column; gap: 1px; flex-shrink: 0">
+            <span style="font-size: 24px; line-height: 28px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">359</span>
+            <span style="font-size: 11px; color: oklch(0.556 0 0)">of 400</span>
+          </div>
+          <span style="font-size: 12.5px; line-height: 19px; color: oklch(0.556 0 0); text-wrap: pretty">orders counted. The other <strong style="font-weight: 500; color: oklch(0.145 0 0)">41</strong> don&rsquo;t say whether they arrived on time or late &mdash; 27 still on the way, 11 ran into a problem, 3 cancelled. They still count towards Total orders.</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 8px; padding: 14px 24px; border-top: 1px solid oklch(0.922 0 0); background: oklch(0.985 0 0); flex-shrink: 0">
+      <div style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 14px; border: 1px solid oklch(0.922 0 0); border-radius: 8px; background: oklch(1 0 0); font-size: 13px; font-weight: 500; flex-grow: 1">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"></path><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M3 9h18"></path><path d="M3 15h18"></path></svg>
+        See the 359 orders
+      </div>
+      <div style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 8px; background: oklch(0.205 0 0); color: oklch(0.985 0 0); font-size: 13px; font-weight: 500; flex-shrink: 0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>
+        Download
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
