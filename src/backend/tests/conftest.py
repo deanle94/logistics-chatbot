@@ -159,7 +159,8 @@ def frontend_base_url() -> str:
 DELIVERY_OUTCOMES: tuple[str, ...] = ("delivered", "delayed")
 
 #: Metric name -> the number of decimals PostgreSQL rounds it to in the calculator.
-ROUNDED_METRICS: dict[str, int] = {"delay_rate": 4, "on_time_rate": 1, "avg_delivery_time": 1}
+#: Both rates are percentages (D19b): delay_rate to 2 decimals, on_time_rate to 1.
+ROUNDED_METRICS: dict[str, int] = {"delay_rate": 2, "on_time_rate": 1, "avg_delivery_time": 1}
 
 #: Metrics that are sums over rows, so a grouped result must add back to the ungrouped
 #: total. Rates and averages deliberately do not.
@@ -219,7 +220,7 @@ def csv_metric_value(rows: list[dict[str, str]], metric: str) -> float | int | N
     if metric == "delay_rate":
         if finished == 0:
             return None
-        return _round_half_up(Decimal(delayed) / Decimal(finished), 4)
+        return _round_half_up(Decimal(100 * delayed) / Decimal(finished), 2)
     if metric == "on_time_rate":
         if finished == 0:
             return None

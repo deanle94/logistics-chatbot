@@ -270,16 +270,18 @@ test('a chart tooltip prints the number the route sent, undecorated', async ({ p
     .hover()
 
   // The registry tooltip shipped `toLocaleString()`, which defaults to three fraction
-  // digits and printed `0.286` for a `0.2857` the table one drawer below showed in full.
-  // A number is rounded once, in `calculator/` (D13); the browser reformats nothing.
+  // digits and would print `28.571` for a `28.57` the table one drawer below shows in full.
+  // A number is rounded once, in `calculator/` (D13); the browser reformats nothing and
+  // only appends the `%` sign (D19b).
   // Scoped to this card: every chart renders its own (mostly empty) tooltip wrapper.
+  const shown = `${worst.delay_rate}%`
   const tooltip = card.locator('.recharts-tooltip-wrapper', { hasText: String(worst.group) })
-  await expect(tooltip).toContainText(String(worst.delay_rate))
+  await expect(tooltip).toContainText(shown)
 
   // Same page, same number: the tooltip and the data table must not disagree on a digit.
   await card.getByTestId('carrier-delay-rate-table-toggle').click()
   const firstRow = card.getByTestId('carrier-delay-rate-table-row').first()
-  await expect(firstRow).toContainText(String(worst.delay_rate))
+  await expect(firstRow).toContainText(shown)
 })
 
 test('the dataset counts printed as copy still describe the dataset', async ({ page, request }) => {

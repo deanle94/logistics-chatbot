@@ -10,6 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import type { ChartParams, ChartRow } from '@/lib/api'
+import { formatMetricValue } from '@/lib/metricFormat'
 
 type ChartDataTableProps = {
   testId: string
@@ -25,16 +26,6 @@ type ChartDataTableProps = {
  */
 function humanize(key: string): string {
   return key.replaceAll('_', ' ')
-}
-
-/**
- * Print one cell exactly as the API sent it.
- *
- * `null` is a real answer - a carrier with no finished orders has no delay rate - and it
- * is shown as a dash rather than silently becoming `0`, which would sort as "perfect".
- */
-function cellText(value: string | number | null | undefined): string {
-  return value === null || value === undefined ? '—' : String(value)
 }
 
 /**
@@ -103,7 +94,7 @@ export function ChartDataTable({ testId, rows, params }: ChartDataTableProps) {
                   <TableCell className="font-medium">{row.group}</TableCell>
                   {params.metrics.map((metric) => (
                     <TableCell key={metric} className="text-right tabular-nums">
-                      {cellText(row[metric])}
+                      {formatMetricValue(metric, row[metric])}
                     </TableCell>
                   ))}
                 </TableRow>

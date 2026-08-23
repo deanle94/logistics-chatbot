@@ -73,15 +73,20 @@ def test_delivery_performance_splits_the_two_delivery_outcomes() -> None:
     assert "GROUP BY to_char(orders.order_date, 'YYYY-MM')" in sql
 
 
-def test_carrier_delay_rate_is_a_ratio_sorted_worst_first() -> None:
+def test_carrier_delay_rate_is_a_percentage_sorted_worst_first() -> None:
     """Chart 3 (D14): delayed over finished, per carrier, biggest first, NULLs last.
 
     ``nullif`` is what keeps a carrier with no finished order out of the top slot: it
     turns a zero denominator into NULL instead of a division error.
+
+    The ``100 *`` is asserted on purpose (D19b): the scale is a business decision owned by
+    the calculator, so a front-end that multiplied by 100 itself would put a formula in the
+    browser and make the Slice 2 chat print a different number from the dashboard.
     """
     sql = compiled_sql(CARRIER_DELAY_RATE_SPEC)
 
     assert "nullif(count(*) FILTER (WHERE orders.status IN ('delivered', 'delayed')), 0)" in sql
+    assert "100 * CAST(count(*) FILTER (WHERE orders.status = 'delayed') AS NUMERIC)" in sql
     assert "round(" in sql
     assert "GROUP BY orders.carrier" in sql
     assert "DESC NULLS LAST" in sql

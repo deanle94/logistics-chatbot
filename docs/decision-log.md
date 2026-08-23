@@ -199,6 +199,22 @@ taken during implementation review.
 | **Why** | A direct consequence of D18: a calculator that emits SQL can only be compared against the CSV by executing it. Leaving those tests in the fast gate would mean either a skipped test that reads as green, or a second in-memory implementation of the same formulas — the second home D18 exists to prevent. |
 | **Gave up** | The fast gate no longer proves a single number: it says "the code is well-formed and the layers hold", not "the numbers are right". A reviewer must run both commands, and the correctness gate needs Docker up. |
 
+### D19a — No header badges *(deliberate deviation from `docs/design/Main.dc.html`)*
+
+|  |  |
+| --- | --- |
+| **Chose** | Removed both header badges: the design's "Counted straight from your orders" and Slice 0's live backend-health indicator. The header is the breadcrumb only. |
+| **Why** | Tech lead's call. The badge asserted in words what the five KPI cards already demonstrate, and backend health is operator telemetry, not a logistics manager's concern. |
+| **Gave up** | Slice 0's browser gate read `/health` out of that badge. It now asserts a KPI value fetched from the live API instead — the same chain proven more strongly, since a correct KPI needs the rows seeded, queried and aggregated, not just `SELECT 1`. `fetchHealth`, `useHealth` and `BackendStatusBadge` were deleted as dead code; `GET /health` itself stays, used by the compose healthcheck and the second browser test. |
+
+### D19b — The delay rate is a percentage, computed in the calculator
+
+|  |  |
+| --- | --- |
+| **Chose** | `delay_rate` returns `28.57` (2 decimals) with the same meaning `on_time_rate` already had, not the `0.2857` ratio it returned before. The front-end appends `%` and changes nothing else. |
+| **Why** | Tech lead's call on the display. Doing the ×100 in React would break D13 — the Slice 2 chat would quote `0.2857` while the dashboard showed `28.57%` — and two scales for one ratio is the drift architecture Decision 1 exists to prevent. `on_time_rate` was already a percentage, so this removes an inconsistency rather than adding one. |
+| **Gave up** | The two rates still round to different precision (2 decimals vs 1), because S1.1 and `Main.dc.html` both pin the on-time card to `84.7%`. So they do not add to exactly 100. `src/lib/metricFormat.ts` knows which metrics carry a `%`, which is the presentation fact D22 already flagged as living outside `calculator/`. |
+
 ---
 
 ## Slice 2 — Chat: natural-language queries

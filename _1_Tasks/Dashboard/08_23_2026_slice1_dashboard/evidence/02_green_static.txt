@@ -1,5 +1,5 @@
 02_green_static.txt - the fast gate. Command: uv run pytest   (from src/backend/)
-Captured 2026-08-23T08:03:43Z (UTC) on branch features/slice1-dashboard.
+Captured 2026-08-23T08:39:25Z (UTC) on branch features/slice1-dashboard.
 
 Proves: ruff check, ruff format --check, mypy --strict, import-linter (4 contracts),
 the planted-violation negative test, the layer-structure test, tech-stack deps, health,
@@ -37,5 +37,5 @@ tests\test_structure.py ......                                           [100%]
     from starlette.testclient import TestClient as TestClient  # noqa
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-=============== 140 passed, 125 deselected, 1 warning in 10.86s ===============
+=============== 140 passed, 125 deselected, 1 warning in 10.06s ===============
 exit code: 0

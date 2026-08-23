@@ -1,5 +1,5 @@
 S1.3 / S1.4 - the numbers, captured with curl on the host against the running compose stack.
-Captured: 2026-08-23T08:02:40Z (UTC)  |  branch: features/slice1-dashboard  |  commit base: d0bfaea
+Captured: 2026-08-23T08:39:25Z (UTC)  |  branch: main
 
 Requests go through nginx on the published front-end port, which is the path the spec names
 (/api/kpis). nginx strips the /api prefix, so the backend sees /kpis - visible in 05_api_access_log.txt.
@@ -7,14 +7,17 @@ This proves the whole chain: nginx -> FastAPI -> calculator -> SQLAlchemy -> Pos
 
 Oracle to check these against (independent read of infra/data/mock_logistics_data.csv):
   400 rows | delivered 304 | delayed 55 | 304/359 = 84.6797% -> 84.7 | mean over 370 two-date rows = 3.82973 -> 3.8
-  order-volume sum = 400 | delivery-performance sum = 304 + 55 = 359 | carrier delay rate desc, first GLS 0.2857
+  order-volume sum = 400 | delivery-performance sum = 304 + 55 = 359
+  carrier delay rate, percent to 2dp, desc: GLS 2/7 = 28.57, USPS 11/46 = 23.91, UPS 17/76 = 22.37,
+  Royal Mail 5/24 = 20.83, OnTrac 4/25 = 16.0, FedEx 11/84 = 13.1, LaserShip 2/24 = 8.33, DHL 3/57 = 5.26, DPD 0/16 = 0.0
+  (both rates are percentages - decision D19b. The browser appends the % sign and changes no digit.)
 
 ===================================================================================
 $ curl -i http://localhost:5173/api/kpis
 ===================================================================================
 HTTP/1.1 200 OK
 Server: nginx/1.29.8
-Date: Sun, 23 Aug 2026 08:02:40 GMT
+Date: Sun, 23 Aug 2026 08:39:25 GMT
 Content-Type: application/json
 Content-Length: 222
 Connection: keep-alive
@@ -26,7 +29,7 @@ $ curl -i http://localhost:5173/api/dashboard/order-volume
 ===================================================================================
 HTTP/1.1 200 OK
 Server: nginx/1.29.8
-Date: Sun, 23 Aug 2026 08:02:40 GMT
+Date: Sun, 23 Aug 2026 08:39:25 GMT
 Content-Type: application/json
 Content-Length: 539
 Connection: keep-alive
@@ -38,7 +41,7 @@ $ curl -i http://localhost:5173/api/dashboard/delivery-performance
 ===================================================================================
 HTTP/1.1 200 OK
 Server: nginx/1.29.8
-Date: Sun, 23 Aug 2026 08:02:40 GMT
+Date: Sun, 23 Aug 2026 08:39:25 GMT
 Content-Type: application/json
 Content-Length: 850
 Connection: keep-alive
@@ -50,10 +53,10 @@ $ curl -i http://localhost:5173/api/dashboard/carrier-delay-rate
 ===================================================================================
 HTTP/1.1 200 OK
 Server: nginx/1.29.8
-Date: Sun, 23 Aug 2026 08:02:40 GMT
+Date: Sun, 23 Aug 2026 08:39:25 GMT
 Content-Type: application/json
-Content-Length: 438
+Content-Length: 429
 Connection: keep-alive
 
-{"rows":[{"group":"GLS","delay_rate":0.2857},{"group":"USPS","delay_rate":0.2391},{"group":"UPS","delay_rate":0.2237},{"group":"Royal Mail","delay_rate":0.2083},{"group":"OnTrac","delay_rate":0.16},{"group":"FedEx","delay_rate":0.131},{"group":"LaserShip","delay_rate":0.0833},{"group":"DHL","delay_rate":0.0526},{"group":"DPD","delay_rate":0.0}],"params":{"metrics":["delay_rate"],"group_by":"carrier","filters":{},"order":"value_desc"}}
+{"rows":[{"group":"GLS","delay_rate":28.57},{"group":"USPS","delay_rate":23.91},{"group":"UPS","delay_rate":22.37},{"group":"Royal Mail","delay_rate":20.83},{"group":"OnTrac","delay_rate":16.0},{"group":"FedEx","delay_rate":13.1},{"group":"LaserShip","delay_rate":8.33},{"group":"DHL","delay_rate":5.26},{"group":"DPD","delay_rate":0.0}],"params":{"metrics":["delay_rate"],"group_by":"carrier","filters":{},"order":"value_desc"}}
 
