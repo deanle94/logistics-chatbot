@@ -1,0 +1,169 @@
+03_green_stack.txt - the correctness gate. Command: uv run pytest -m stack   (from src/backend/)
+Captured 2026-08-23T08:05:16Z (UTC) on branch features/slice1-dashboard,
+from a COLD start: 'docker compose down -v' was run immediately before, so
+infra/db/init/01_roles.sh re-executed on an empty volume and the seeder re-read the CSV.
+A warm run proves less, because the role grants only execute on first boot.
+
+Proves, against the real seeded PostgreSQL and a real browser:
+  S1.1  the five KPIs equal the CSV oracle, with units
+  S1.2  every metric x group-by combination equals the CSV oracle; grouped totals add back
+        for the summable metrics; rates and averages are asserted NOT to add back rather
+        than skipped; ISO Monday week buckets equal Python's d - timedelta(d.weekday())
+        (decision D12, now proven rather than assumed); a filter matching nothing returns
+        no rows rather than an error (D15)
+  S1.3  GET /api/kpis body equals the calculator output field for field
+  S1.4  the three chart routes equal the oracle - volume 400, delivery-performance 359,
+        carrier delay rate sorted descending from GLS 0.2857
+  S1.5  Playwright drives the nginx-served page: the five card texts are compared against a
+        LIVE /api/kpis response rather than literals, all three chart types render series,
+        and each table toggle reveals exactly the rows that chart's own route returned.
+        Screenshots 06 and 07 are written by this run.
+  Slice 0 regression: all six original stack gates still pass (row count, status counts,
+        write rejection, re-seed idempotency, health, the Slice 0 browser test).
+
+================================================================================
+stack down, volumes removed
+============================= test session starts =============================
+platform win32 -- Python 3.13.2, pytest-9.1.1, pluggy-1.6.0 -- A:\Learning\AI\HongKong_AI_Assessment\src\backend\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: A:\Learning\AI\HongKong_AI_Assessment\src\backend
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.14.2, langsmith-0.11.1
+collecting ... collected 265 items / 140 deselected / 125 selected
+
+tests/test_api_dashboard_stack.py::test_kpis_route_serves_the_csv_numbers PASSED [  0%]
+tests/test_api_dashboard_stack.py::test_order_volume_route_serves_every_month_and_sums_to_the_dataset PASSED [  1%]
+tests/test_api_dashboard_stack.py::test_delivery_performance_route_sums_to_the_finished_orders PASSED [  2%]
+tests/test_api_dashboard_stack.py::test_carrier_delay_rate_route_is_sorted_worst_first PASSED [  3%]
+tests/test_api_dashboard_stack.py::test_the_browser_facing_api_prefix_reaches_the_same_route PASSED [  4%]
+tests/test_kpis_oracle.py::test_total_orders_counts_every_row PASSED     [  4%]
+tests/test_kpis_oracle.py::test_delivered_orders_counts_only_the_delivered_status PASSED [  5%]
+tests/test_kpis_oracle.py::test_delayed_orders_counts_only_the_delayed_status PASSED [  6%]
+tests/test_kpis_oracle.py::test_on_time_rate_divides_by_the_finished_orders_only PASSED [  7%]
+tests/test_kpis_oracle.py::test_average_delivery_time_covers_only_rows_with_both_dates PASSED [  8%]
+tests/test_kpis_oracle.py::test_every_kpi_carries_the_unit_the_dashboard_prints PASSED [  8%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[order_count-none] PASSED [  9%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[order_count-week] PASSED [ 10%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[order_count-month] PASSED [ 11%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[order_count-carrier] PASSED [ 12%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[order_count-status] PASSED [ 12%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[order_count-sku] PASSED [ 13%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[order_count-product_category] PASSED [ 14%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[order_count-region] PASSED [ 15%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[order_count-warehouse] PASSED [ 16%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-none] PASSED [ 16%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-week] PASSED [ 17%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-month] PASSED [ 18%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-carrier] PASSED [ 19%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-status] PASSED [ 20%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-sku] PASSED [ 20%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-product_category] PASSED [ 21%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-region] PASSED [ 22%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delivered_orders-warehouse] PASSED [ 23%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-none] PASSED [ 24%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-week] PASSED [ 24%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-month] PASSED [ 25%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-carrier] PASSED [ 26%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-status] PASSED [ 27%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-sku] PASSED [ 28%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-product_category] PASSED [ 28%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-region] PASSED [ 29%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delayed_orders-warehouse] PASSED [ 30%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-none] PASSED [ 31%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-week] PASSED [ 32%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-month] PASSED [ 32%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-carrier] PASSED [ 33%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-status] PASSED [ 34%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-sku] PASSED [ 35%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-product_category] PASSED [ 36%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-region] PASSED [ 36%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[delay_rate-warehouse] PASSED [ 37%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-none] PASSED [ 38%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-week] PASSED [ 39%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-month] PASSED [ 40%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-carrier] PASSED [ 40%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-status] PASSED [ 41%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-sku] PASSED [ 42%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-product_category] PASSED [ 43%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-region] PASSED [ 44%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[on_time_rate-warehouse] PASSED [ 44%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-none] PASSED [ 45%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-week] PASSED [ 46%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-month] PASSED [ 47%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-carrier] PASSED [ 48%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-status] PASSED [ 48%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-sku] PASSED [ 49%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-product_category] PASSED [ 50%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-region] PASSED [ 51%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[avg_delivery_time-warehouse] PASSED [ 52%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-none] PASSED [ 52%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-week] PASSED [ 53%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-month] PASSED [ 54%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-carrier] PASSED [ 55%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-status] PASSED [ 56%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-sku] PASSED [ 56%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-product_category] PASSED [ 57%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-region] PASSED [ 58%]
+tests/test_query_oracle.py::test_metric_by_group_matches_the_csv[quantity-warehouse] PASSED [ 59%]
+tests/test_query_oracle.py::test_time_buckets_arrive_in_chronological_order[week] PASSED [ 60%]
+tests/test_query_oracle.py::test_time_buckets_arrive_in_chronological_order[month] PASSED [ 60%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[order_count-week] PASSED [ 61%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[order_count-month] PASSED [ 62%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[order_count-carrier] PASSED [ 63%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[order_count-status] PASSED [ 64%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[order_count-sku] PASSED [ 64%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[order_count-product_category] PASSED [ 65%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[order_count-region] PASSED [ 66%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[order_count-warehouse] PASSED [ 67%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[delivered_orders-week] PASSED [ 68%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[delivered_orders-month] PASSED [ 68%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[delivered_orders-carrier] PASSED [ 69%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[delivered_orders-status] PASSED [ 70%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[delivered_orders-sku] PASSED [ 71%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[delivered_orders-product_category] PASSED [ 72%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[delivered_orders-region] PASSED [ 72%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[delivered_orders-warehouse] PASSED [ 73%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[delayed_orders-week] PASSED [ 74%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[delayed_orders-month] PASSED [ 75%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[delayed_orders-carrier] PASSED [ 76%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[delayed_orders-status] PASSED [ 76%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[delayed_orders-sku] PASSED [ 77%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[delayed_orders-product_category] PASSED [ 78%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[delayed_orders-region] PASSED [ 79%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[delayed_orders-warehouse] PASSED [ 80%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[quantity-week] PASSED [ 80%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[quantity-month] PASSED [ 81%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[quantity-carrier] PASSED [ 82%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[quantity-status] PASSED [ 83%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[quantity-sku] PASSED [ 84%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[quantity-product_category] PASSED [ 84%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[quantity-region] PASSED [ 85%]
+tests/test_query_oracle.py::test_a_grouped_total_adds_back_to_the_ungrouped_total[quantity-warehouse] PASSED [ 86%]
+tests/test_query_oracle.py::test_rates_and_averages_deliberately_do_not_add_back PASSED [ 87%]
+tests/test_query_oracle.py::test_week_buckets_are_the_monday_of_the_order_date PASSED [ 88%]
+tests/test_query_oracle.py::test_a_date_range_filter_narrows_the_rows PASSED [ 88%]
+tests/test_query_oracle.py::test_a_dimension_filter_narrows_the_rows[carrier] PASSED [ 89%]
+tests/test_query_oracle.py::test_a_dimension_filter_narrows_the_rows[status] PASSED [ 90%]
+tests/test_query_oracle.py::test_a_dimension_filter_narrows_the_rows[sku] PASSED [ 91%]
+tests/test_query_oracle.py::test_a_dimension_filter_narrows_the_rows[product_category] PASSED [ 92%]
+tests/test_query_oracle.py::test_a_dimension_filter_narrows_the_rows[region] PASSED [ 92%]
+tests/test_query_oracle.py::test_a_dimension_filter_narrows_the_rows[warehouse] PASSED [ 93%]
+tests/test_query_oracle.py::test_a_filter_matching_nothing_returns_no_rows_rather_than_an_error PASSED [ 94%]
+tests/test_query_oracle.py::test_value_ordering_sorts_by_the_first_metric_descending PASSED [ 95%]
+tests/test_stack.py::test_backend_health_reports_database_reachable PASSED [ 96%]
+tests/test_stack.py::test_database_holds_every_csv_row PASSED            [ 96%]
+tests/test_stack.py::test_status_counts_match_the_csv PASSED             [ 97%]
+tests/test_stack.py::test_application_role_cannot_write PASSED           [ 98%]
+tests/test_stack.py::test_seeding_twice_leaves_the_row_count_unchanged PASSED [ 99%]
+tests/test_stack.py::test_frontend_renders_backend_status_in_a_browser PASSED [100%]
+
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  A:\Learning\AI\HongKong_AI_Assessment\src\backend\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=============== 125 passed, 140 deselected, 1 warning in 36.19s ===============
+
+[exited with code 0]

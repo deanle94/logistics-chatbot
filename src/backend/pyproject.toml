@@ -118,11 +118,27 @@ source_modules = [
     "logistics_analytics.agent",
     "logistics_analytics.api",
     "logistics_analytics.tools",
-    "logistics_analytics.calculator",
 ]
 forbidden_modules = ["sqlalchemy", "psycopg"]
 # Indirect imports are allowed here on purpose: the rule is "only data/ *touches* the
-# database", so api/ and calculator/ may call into data/ (which does use SQLAlchemy)
-# while being forbidden from importing the driver themselves. The two contracts above
+# database", so api/ and tools/ may call into data/ (which does use SQLAlchemy) while
+# being forbidden from importing the driver themselves. The two contracts above
 # deliberately keep the default, where an indirect leak through a helper is a failure.
 allow_indirect_imports = true
+
+# Slice 1, decision D18. calculator/ was removed from the contract above because the
+# calculator now owns the SQL *expressions* - it BUILDS a statement but never RUNS one.
+# That is what keeps every business definition in one file while still letting PostgreSQL
+# do the arithmetic. This contract is the replacement guard: the calculator may describe a
+# query, but it may not reach a database. It never imports the engine or the executor; the
+# thing that executes its statements arrives by dependency injection through a Protocol
+# (calculator/query.py::ExecuteQuery), so there is no import edge to follow.
+[[tool.importlinter.contracts]]
+name = "The calculator describes queries but never connects"
+type = "forbidden"
+source_modules = ["logistics_analytics.calculator"]
+forbidden_modules = [
+    "psycopg",
+    "logistics_analytics.data.engine",
+    "logistics_analytics.data.repository",
+]

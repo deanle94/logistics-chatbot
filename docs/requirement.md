@@ -100,6 +100,8 @@ Format for every entry: **Decision → Why → Trade-off (what we gave up)**
 | 2 | Chat and dashboard share one query tool | Numbers can never disagree; less code | Dashboard slightly over-powered for fixed queries |
 | 3 | Simple forecasting method (e.g. moving average) | Spec allows it; explainable; fits time budget | Lower accuracy than real models (ARIMA, ML) |
 | 4 | Limited question "menu" + polite refusals | Correct answers only; no hallucinated numbers | Some reasonable questions get "not supported" |
+| 5 | Chat streams over SSE: progress frames, then one result frame | Design shows real progress on a 30 s call; numbers still land in one validated payload | Added scope — every chat gate reads frames; no plain-JSON endpoint to `curl` |
+| 6 | One answer = one envelope (answer, display, data, rows, explanation) | Table sits under every chart and explainability is required, so an answer is never one-of-{text, chart, table} | One display per answer; number formatting moved to the front-end |
  
 > Cheap win: keep this table updated for 2 minutes after every decision, and
 > the hardest README sections (Key decisions, Assumptions, Limitations) write

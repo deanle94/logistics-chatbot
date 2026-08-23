@@ -1,0 +1,14 @@
+### FINAL VERIFICATION  2026-08-23T05:01:47Z
+### Cold start: docker compose down -v was run first.
+
+===== pytest (static gates) =====
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+27 passed, 6 deselected, 1 warning in 8.53s
+
+===== pytest -m stack (live stack gates) =====
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+6 passed, 27 deselected, 1 warning in 29.29s
