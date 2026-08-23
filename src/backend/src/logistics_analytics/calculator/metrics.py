@@ -41,12 +41,16 @@ from logistics_analytics.data.models import Order
 #: only these.
 DELIVERY_OUTCOMES: tuple[str, ...] = ("delivered", "delayed")
 
-#: Decimals each rate is rounded to. Both rates are percentages (D19b).
-#: Two for the delay rate, so a one-in-ten-thousand difference between two carriers is
-#: still visible in the sort; one for the on-time rate, because S1.1 and the design both
-#: pin the KPI card to "84.7%".
-RATE_DECIMALS = 2
-PERCENT_DECIMALS = 1
+#: Decimals every rounded metric is given: one, everywhere (D19c).
+#:
+#: Both rates are percentages (D19b), and one decimal each is what makes them agree — the
+#: on-time rate and the delay rate are the same ratio read from opposite ends, so over the
+#: whole dataset they now add to exactly 100.0 (84.7 + 15.3). It is also the precision S1.1
+#: and the design pin the KPI card to.
+RATE_DECIMALS = 1
+
+#: Average delivery time is days rather than a percentage, but prints to one decimal too.
+DAYS_DECIMALS = 1
 
 
 def _order_count() -> ColumnElement[Any]:
@@ -86,7 +90,12 @@ def _delay_rate() -> ColumnElement[Any]:
     keeps the digits out of the browser - under D13 the dashboard and the Slice 2 chat must
     print the identical number, which they cannot do if React multiplies by 100.
 
-    Two decimals, not one: it carries exactly the information the old 4-decimal ratio did.
+    One decimal, like every other rounded metric (D19c), so this rate and the on-time rate
+    add to 100.0 rather than to 100.02. The cost is that two carriers whose true rates
+    differ by less than 0.05 points now tie, and ``ORDER BY`` sorts the rounded value, so
+    their order relative to each other is arbitrary. No two carriers tie on this dataset —
+    ``tests/test_query_oracle.py`` asserts the ordering against the CSV, so a future dataset
+    that does tie fails there rather than silently reordering the chart.
 
     ``nullif`` turns a zero denominator into NULL instead of a division error: a carrier
     with nothing finished has no delay rate, which is a different answer from zero and
@@ -107,7 +116,7 @@ def _on_time_rate() -> ColumnElement[Any]:
     """
     return func.round(
         100 * cast(_delivered_orders(), Numeric) / func.nullif(_finished_orders(), 0),
-        PERCENT_DECIMALS,
+        RATE_DECIMALS,
     )
 
 
@@ -121,7 +130,7 @@ def _avg_delivery_time() -> ColumnElement[Any]:
     """
     return func.round(
         cast(func.avg(Order.delivery_date - Order.order_date), Numeric),
-        PERCENT_DECIMALS,
+        DAYS_DECIMALS,
     )
 
 

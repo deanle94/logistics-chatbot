@@ -211,9 +211,17 @@ taken during implementation review.
 
 |  |  |
 | --- | --- |
-| **Chose** | `delay_rate` returns `28.57` (2 decimals) with the same meaning `on_time_rate` already had, not the `0.2857` ratio it returned before. The front-end appends `%` and changes nothing else. |
-| **Why** | Tech lead's call on the display. Doing the ×100 in React would break D13 — the Slice 2 chat would quote `0.2857` while the dashboard showed `28.57%` — and two scales for one ratio is the drift architecture Decision 1 exists to prevent. `on_time_rate` was already a percentage, so this removes an inconsistency rather than adding one. |
-| **Gave up** | The two rates still round to different precision (2 decimals vs 1), because S1.1 and `Main.dc.html` both pin the on-time card to `84.7%`. So they do not add to exactly 100. `src/lib/metricFormat.ts` knows which metrics carry a `%`, which is the presentation fact D22 already flagged as living outside `calculator/`. |
+| **Chose** | `delay_rate` returns `28.6`, the same kind of number `on_time_rate` already returned, not the `0.2857` ratio it returned before. The front-end appends `%` and changes nothing else. |
+| **Why** | Tech lead's call on the display. Doing the ×100 in React would break D13 — the Slice 2 chat would quote `0.2857` while the dashboard showed `28.6%` — and two scales for one ratio is the drift architecture Decision 1 exists to prevent. `on_time_rate` was already a percentage, so this removes an inconsistency rather than adding one. |
+| **Gave up** | `src/lib/metricFormat.ts` has to know which metrics carry a `%`. That is the presentation fact D22 already flagged as living outside `calculator/`; it adds a symbol and never touches a digit. |
+
+### D19c — One decimal for every rounded metric
+
+|  |  |
+| --- | --- |
+| **Chose** | `delay_rate`, `on_time_rate` and `avg_delivery_time` all round to one decimal. |
+| **Why** | Tech lead's call. The on-time and delay rates are one ratio read from both ends, so at one decimal they add to exactly `100.0` (84.7 + 15.3); at two they came to `100.02`, which a reviewer checks with a calculator and does not forget. `tests/test_query_oracle.py` asserts the sum over the whole dataset — per group the two halves can each land on a `.x5` boundary and round apart, so the claim is scoped to ungrouped. |
+| **Gave up** | Two carriers whose true delay rates differ by under 0.05 points now tie, and `ORDER BY` sorts the rounded value, so their order becomes arbitrary. No two tie on this dataset (28.6 / 23.9 / 22.4 / 20.8 / 16.0 / 13.1 / 8.3 / 5.3 / 0.0) and the oracle asserts the ordering against the CSV, so a dataset that ties fails the test rather than silently reordering the chart. |
 
 ---
 

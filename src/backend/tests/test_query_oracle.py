@@ -172,6 +172,25 @@ def test_rates_and_averages_deliberately_do_not_add_back(
         assert summed != pytest.approx(whole, abs=1e-6), f"{metric.value} unexpectedly summed"
 
 
+def test_the_two_rates_are_one_ratio_read_from_both_ends(execute: QueryExecutor) -> None:
+    """Over the whole dataset the on-time and delay rates add to exactly 100.0 (D19c).
+
+    This is the reason both are rounded to one decimal. At two decimals the pair came to
+    100.02, which is the kind of thing a reviewer checks with a calculator and does not
+    forget. Asserted over the ungrouped dataset only: per group the two halves can each
+    land on a .x5 boundary and round apart, so a universal claim here would be false.
+    """
+    spec = QuerySpec(metrics=(Metric.ON_TIME_RATE, Metric.DELAY_RATE))
+    (row,) = run_query(execute, spec).rows
+
+    on_time = row.values[Metric.ON_TIME_RATE]
+    delayed = row.values[Metric.DELAY_RATE]
+
+    assert on_time is not None
+    assert delayed is not None
+    assert on_time + delayed == pytest.approx(100.0, abs=1e-9)
+
+
 # --------------------------------------------------------------------------------------
 # D12 - the week bucket is the Monday of the order date.
 # --------------------------------------------------------------------------------------
