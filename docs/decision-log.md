@@ -263,6 +263,36 @@ Taken at design review, before any Slice 2 code. The first transport decision in
 | **Why** | (a) Two surfaces drift; a test frame-reader is cheaper. (b) Backend owns the milestone, UI owns the wording — what the design note asks for — and a graph rename cannot change user-visible text. (c) S2.4 asserts on refusals; the error path would make it assert on an exception. |
 | **Gave up** | No plain-JSON `curl` shortcut; the enum is extended by hand; two response paths to test. **Deviation from the design copy:** its *"Counting across 359 orders…"* loses the figure, since a `stage` frame would have to send a number before the tool produced one. Reversible by giving `querying` a payload. |
 
+
+### D24 — One provider everywhere: the Anthropic API on Haiku, reached through `init_chat_model`
+
+|  |  |
+| --- | --- |
+| **Chose** | `claude-haiku-4-5-20251001` for dev, the recorded gates and PROD alike, constructed by `init_chat_model(LLM_MODEL, ...)` in the composition root so the provider is one `.env` value. Dep `langchain-anthropic` (1.6.1). Structure is enforced **by the provider** — real structured output on Classify, forced `tool_choice` on the Answer node's first call — not by validate-and-retry. |
+| **Why** | Measured, not assumed. The local profile broke both LangChain structured-output paths (`parsed = None`, then `400 Invalid tool_choice type: 'object'`), which meant `architecture.md` Decision 3's *"the model must emit a tool call before it can reply"* was a prompt instruction rather than a guarantee. On Haiku it is a guarantee again. Routing measured at **14/14** on the S2.7 question list, twice, median 2.2 s per call — against 30 s allowed by S2.5. One provider also means the evidence files show the model the product actually ships on, which is what `tasks.md` asked for originally. |
+| **Gave up** | Cost, which is what the local profile was for: `uv run pytest -m stack` now makes roughly 70 model calls and needs a funded key, so the correctness gate is no longer free or offline. A hosted model can also be updated between our run and a reviewer's, so the dated model id is pinned rather than an alias and every assertion is on structure, never wording. The static gate (`uv run pytest`) stays keyless, offline and free. |
+| **Rejected** | **Keeping local for gates, Anthropic for PROD.** Two profiles means the recorded evidence is not the shipped behaviour, and the two disagree on the one capability the whole design leans on. |
+| **Rejected** | **Our own provider wrapper.** `agent/` is already typed against `BaseChatModel` and LangChain already ships the factory; a third layer would own nothing. The real gap was that the composition root *named* `ChatAnthropic`, which `init_chat_model` closes. |
+| **Caveat** | The abstraction hides the interface, not the capability. A provider that does not honour forced tool choice would pass startup and fail at the first question — so `create_llm` states the requirement in its docstring, S4.1's README lists it under Limitations, and the S2.x gates are what qualify a provider. Swapping is one line; trusting the swap costs a gate run. |
+
+### D25 — A three-node StateGraph of our own, with `create_agent` as one node
+
+|  |  |
+| --- | --- |
+| **Chose** | An outer `StateGraph` — `classify` → (conditional) → `answer` → `enforce` — where `answer` is the compiled `create_agent` of D6, added as a subgraph node. One `InMemorySaver` on the outer compile; `thread_id` = the request's `conversation_id`. State is exactly `agent-design.md`'s three fields. The refusal sentinel in `tools/` returns only its *reason*, so `enforce` is the single builder of the `unsupported` envelope. |
+| **Why** | Fewer moving parts than the hand-written pipeline it replaced, and it converts two rules from "checked by a gate" to "cannot happen": the Classify gate becomes the conditional edge, and both refusal layers physically converge on `enforce`, which is what makes "both emit the identical envelope" (rule 4) structural. Verified by compiling and running it: node keys `['classify','answer','enforce']` under `stream_mode="updates"`, and the subgraph inherits the checkpointer. |
+| **Gave up** | Two graph frameworks in one call path, so a stack trace crosses both. D6 is not reversed — `create_agent` still owns the tool loop. |
+| **Deviation** | `agent-design.md`'s "no tool called → retry once, then unsupported" is not implemented as a retry. Forced `tool_choice` on the first model call makes bare prose illegal at the provider, so `enforce` refuses instead of retrying something that cannot happen. |
+
+### D26 — `agent/` is handed its tools; the envelope rides the final message
+
+|  |  |
+| --- | --- |
+| **Chose** | `agent/` imports LangChain and nothing from this package. Tools arrive as `Sequence[BaseTool]` and the dataset's column names as `Sequence[str]`, both from `main.py`. `enforce` returns the answer as an `AIMessage` whose `additional_kwargs["envelope"]` carries the result; `api/chat.py` reads it off the node update. |
+| **Why** | Import-linter contract 1 forbids *chains*, not just direct edges — proven by planting `agent → tools → calculator`, which turned it BROKEN; injection leaves no edge at all. The envelope rides the message because the state is fixed at three fields, and because an answer and the explanation of it should not be able to drift apart in the checkpoint. |
+| **Gave up** | `agent/` cannot name the tool it expects, so a missing tool is a runtime failure rather than an import error — bought back by S2.3/S2.7, which fail loudly on exactly that. `additional_kwargs` is a LangChain extension point, not a field of ours. |
+
+
 ---
 
 ## Corrections made to the specs
@@ -274,6 +304,9 @@ All dated 08_23_2026. No acceptance criterion was loosened and no expected numbe
 - **Slice 1 S1.4/S1.5.** Rewritten for **D9**: `/api/charts` → three parameterless `/api/dashboard/` routes, `/api/kpis` left top-level, and S1.5 now states the front-end composes the dashboard. A deliberate deviation from `architecture.md` §2, updated when the slice is implemented.
 - **Import-linter contract split + evidence manifest.** Both consequences of **D18**/**D19**: the Slice 0 database contract in `pyproject.toml` was replaced by two contracts (details in D18), `architecture.md` §3 restated the rule in words (§3's Components table also moved "safe query building" off `data/`, since under D18 the calculator builds the statement), `tasks.md` S1.2's auto-check moved from `parametrized unit test` to `parametrized test … runs under pytest -m stack` — its pass-when is unchanged — and the S1.1/S1.2 oracle tests moved from `02_green_static.txt` to `03_green_stack.txt` in the spec's manifest. Recorded here because editing a passing contract should not be silent.
 - **Chat transport and payload.** Four documents edited for **D20–D23**: `architecture.md` §2/§3/§5, `tasks.md` S2.5/S2.6, `requirement.md` decision table rows 5–6. S2.5 asserts the same schema and the same "chat total == KPI endpoint" equality, read out of the final `result` frame.
+- **LLM provider switched to local for dev + gates — then reversed the same day** *(both dated 08_24_2026)*. The local profile (`qwen/qwen3.5-9b` via LM Studio, dep `langchain-openai`) was chosen at design review to save cost, with PROD on the Anthropic API. The tech lead reversed it hours later, before any agent code existed: one provider everywhere, the Anthropic API on Haiku. Recorded rather than deleted because the reversal is *why* **D24** above can claim provider-side enforcement — the local model's inability to honour forced tool choice is the measurement that makes the case. `tasks.md`, `agent-design.md` D6 and the Slice 2 spec were edited twice; no acceptance criterion or expected number changed on either pass.
+- **`agent-design.md` gained D6** *(dated 08_24_2026)*. Tech lead chose the prebuilt `langchain.agents.create_agent` with prompt-controlled flow over the hand-built two-node StateGraph; the document's graph is now the behavioral contract enforced by a post-hoc wrapper + the S2.x gates, with the escalation path (middleware → custom graph) recorded in D6.
+- **Suggested question chips removed** *(dated 08_24_2026)*. Tech-lead scope cut: `tasks.md` S2.6 dropped "suggested chips" and its "≥3 chips, click fills input" pass-when; the Out-of-scope note now lists chips as bonus. Slice 2 spec updated to match. FollowUp `options[]` (agent-design.md) are unaffected. No number changed.
 - **`spec.md` S0.3 status labels.** The spec's `304/55/27/11/3` had the right numbers with swapped labels; the CSV gives `delivered 304, delayed 55, in_transit 27, exception 11, canceled 3`. Text corrected; the test derives the mapping from the CSV at runtime, so it cannot drift again.
 
 ---

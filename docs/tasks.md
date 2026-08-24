@@ -8,7 +8,7 @@ Delivery style (user decision): **ship in slices, not big bang.** Skeleton → D
 
 **Rule for every task:** done = a command exits 0. No eyeball checks.
 **Oracle rule:** expected numbers come from an independent read of the CSV or `business-definition.md` constants — never from the code under test.
-**Real LLM:** agent tests call real Claude. They assert structure (tool, params, numbers ⊆ tool output), not wording; retried ≤2×.
+**Real LLM:** agent tests call a real LLM — the Anthropic API, `claude-haiku-4-5-20251001` (tech lead, 08_24_2026). They assert structure (tool, params, numbers ⊆ tool output), not wording; retried ≤2×. A local-model profile was tried the same day and reversed; see `decision-log.md` D24.
 
 Dataset verified: `infra/data/mock_logistics_data.csv`, 400 rows, status 304/55/27/11/3 == docs. Extra dimensions: `product_category, region, warehouse`.
 
@@ -40,7 +40,7 @@ Dataset verified: `infra/data/mock_logistics_data.csv`, 400 rows, status 304/55/
 | S1.5 | Dashboard page: 5 KPI cards + 3 charts + data-table toggle under each chart; front-end composes the charts and owns the three fixed display types | browser test | 5 cards, text == KPI endpoint; line + stacked + bar all render; each toggle reveals a table with rows == that route’s rows |
 
 **Slice gate:** S1.5 green. Dashboard feature done
-## Slice 2 — Chat: natural-language queries (real Claude)
+## Slice 2 — Chat: natural-language queries (real LLM — Anthropic API)
 
 | ID | Task | Auto-check | Pass when |
 |---|---|---|---|
@@ -49,7 +49,7 @@ Dataset verified: `infra/data/mock_logistics_data.csv`, 400 rows, status 304/55/
 | S2.3 | Agent: question → tool + params → result → prose; tool call mandatory before text | agent test, 4 canonical questions | expected tool/metric/group-by; tool call precedes text; **no digit in prose absent from tool result** |
 | S2.4 | Out-of-scope refusal | agent test | "weather", "poem" → unsupported display, null data, no digits |
 | S2.5 | `POST /api/chat` over SSE: `stage`* → one `result` (answer + display + data + rows + explanation) → `done` (D20, D23) | API test + shared frame reader | content-type `text/event-stream`; exactly one `result`, schema valid; "total orders" via chat == KPI endpoint; refusal is a `result`, not an `error`; < 30 s |
-| S2.6 | Chat page: input, progress states, answer card (stat/line/bar/stacked), explainability panel, table toggle, suggested chips | browser test (real backend) | ≥1 progress line before the answer; carrier question → bar; panel shows metric + group-by; table rows == API rows; ≥3 chips, click fills input |
+| S2.6 | Chat page: input, progress states, answer card (stat/line/bar/stacked), explainability panel, table toggle | browser test (real backend) | ≥1 progress line before the answer; carrier question → bar; panel shows metric + group-by; table rows == API rows |
 | S2.7 | Routing eval set (≥12 questions) | eval test | ≥11/12 correct tool+params; 0 invented digits; report written |
 
 **Slice gate:** S2.7 green.
@@ -85,5 +85,5 @@ S0 (all) → S1.1 → S1.2 → S1.3/1.4 → S1.5
 
 ## Out of scope
 
-Bonus items (history, caching, ambiguity prompts) unless all gates green. Chips kept — near-zero cost.
+Bonus items (history, caching, ambiguity prompts, suggested question chips) unless all gates green. Chips dropped from S2.6 by the tech lead, 08_24_2026.
 

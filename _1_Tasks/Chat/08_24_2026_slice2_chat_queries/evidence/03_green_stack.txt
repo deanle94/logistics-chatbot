@@ -1,0 +1,37 @@
+S2 stack gate — the correctness gate. This is where the numbers are proved.
+Captured 2026-08-24T02:27:00Z on branch features/slice2-chat-queries.
+
+Cold start: 'docker compose down -v' ran first, so infra/db/init/01_roles.sh
+re-executed on an empty volume and the seeder re-loaded the CSV from scratch.
+Agent tests make real, billable Anthropic calls (claude-haiku-4-5-20251001) and
+HARD FAIL rather than skip when the provider is unreachable (O4).
+Includes the Playwright run that writes 06 and 07, and the S2.7 runner that writes 08.
+
+Baseline before Slice 2: 125 passed.
+
+$ docker compose down -v && cd src/backend && uv run pytest -m stack
+--------------------------------------------------------------------------------
+============================= test session starts =============================
+platform win32 -- Python 3.13.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: A:\Learning\AI\HongKong_AI_Assessment\src\backend
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.14.2, langsmith-0.11.1
+collected 339 items / 194 deselected / 145 selected
+
+tests\test_api_dashboard_stack.py .....                                  [  3%]
+tests\test_chat_agent_stack.py .........                                 [  9%]
+tests\test_chat_api_stack.py .........                                   [ 15%]
+tests\test_chat_eval_stack.py .                                          [ 16%]
+tests\test_kpis_oracle.py ......                                         [ 20%]
+tests\test_query_oracle.py ............................................. [ 51%]
+................................................................         [ 95%]
+tests\test_stack.py ......                                               [100%]
+
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  A:\Learning\AI\HongKong_AI_Assessment\src\backend\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========= 145 passed, 194 deselected, 1 warning in 156.60s (0:02:36) ==========

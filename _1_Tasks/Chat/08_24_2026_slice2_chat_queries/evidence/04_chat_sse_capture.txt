@@ -1,0 +1,61 @@
+S2.5 raw SSE frames — POST /api/chat, captured with curl -N from the host.
+Captured 2026-08-24T02:21:55Z against the live compose stack on branch features/slice2-chat-queries.
+
+Through the front-end's nginx on :5173, so this also proves the /api proxy does not
+buffer the stream. Two requests: one data question and one out-of-scope question.
+What to check: stage* frames from the closed enum, then EXACTLY ONE result, then done;
+the refusal arrives as a result with display 'unsupported', never as an error (D23c);
+and every digit in 'answer' also appears in 'rows' — that is rule 1, checkable by eye.
+The delay-rate figures can be checked against infra/data/mock_logistics_data.csv.
+
+================================================================================
+REQUEST (carrier): Which carrier has the highest delay rate?
+$ curl -N -s -D - -X POST http://localhost:5173/api/chat -H 'Content-Type: application/json' \
+       -d '{"question":"Which carrier has the highest delay rate?","conversation_id":"evidence-carrier-1787538115"}'
+================================================================================
+HTTP/1.1 200 OK
+Server: nginx/1.29.8
+Date: Mon, 24 Aug 2026 02:21:55 GMT
+Content-Type: text/event-stream; charset=utf-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+cache-control: no-cache
+
+event: stage
+data: {"stage": "interpreting"}
+
+event: stage
+data: {"stage": "querying"}
+
+event: stage
+data: {"stage": "composing"}
+
+event: result
+data: {"answer": "GLS has the highest delay rate at 28.6%. DPD is the most reliable carrier with no late arrivals.", "display": "bar", "data": null, "rows": [{"group": "GLS", "delay_rate": 28.6}, {"group": "USPS", "delay_rate": 23.9}, {"group": "UPS", "delay_rate": 22.4}, {"group": "Royal Mail", "delay_rate": 20.8}, {"group": "OnTrac", "delay_rate": 16.0}, {"group": "FedEx", "delay_rate": 13.1}, {"group": "LaserShip", "delay_rate": 8.3}, {"group": "DHL", "delay_rate": 5.3}, {"group": "DPD", "delay_rate": 0.0}], "explanation": {"metrics": ["delay_rate"], "group_by": "carrier", "filters": {}, "order": "value_desc", "row_count": 9}, "follow_up": null}
+
+event: done
+data: {}
+
+
+================================================================================
+REQUEST (refusal): What's the weather in Hong Kong?
+$ curl -N -s -D - -X POST http://localhost:5173/api/chat -H 'Content-Type: application/json' \
+       -d '{"question":"What's the weather in Hong Kong?","conversation_id":"evidence-refusal-1787538119"}'
+================================================================================
+HTTP/1.1 200 OK
+Server: nginx/1.29.8
+Date: Mon, 24 Aug 2026 02:21:59 GMT
+Content-Type: text/event-stream; charset=utf-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+cache-control: no-cache
+
+event: stage
+data: {"stage": "interpreting"}
+
+event: result
+data: {"answer": "The orders do not contain weather data.", "display": "unsupported", "data": null, "rows": [], "explanation": null, "follow_up": null}
+
+event: done
+data: {}
+

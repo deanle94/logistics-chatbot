@@ -56,6 +56,12 @@ services:
     environment:
       # The API only ever holds the read-only role's credentials.
       DATABASE_URL: postgresql+psycopg://${APP_RO_USER:-app_ro}:${APP_RO_PASSWORD:-app_ro_local_dev}@db:5432/${POSTGRES_DB:-logistics}
+      # Slice 2. Unlike every other value here this one gets NO inline default: the `:?`
+      # form stops `docker compose up` by name instead of booting a service that would
+      # 401 on the customer's first question. The key lives in .env, which is gitignored.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?set it in .env}
+      LLM_MODEL: ${LLM_MODEL:-anthropic:claude-haiku-4-5-20251001}
+      LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-25}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     depends_on:

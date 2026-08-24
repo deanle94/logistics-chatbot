@@ -16,6 +16,7 @@ dependencies = [
     # here because S0.6 requires the stack to be present from the skeleton onward.
     "langchain>=1.3.16",
     "langgraph>=1.2.11",
+    "langchain-anthropic>=1.6.1",
 ]
 
 [dependency-groups]
