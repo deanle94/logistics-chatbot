@@ -1,0 +1,43 @@
+S2 static gate — code well-formed, layers hold, front-end builds.
+Captured 2026-08-24T02:26:38Z on branch features/slice2-chat-queries.
+
+Covers ruff, ruff format, mypy --strict, import-linter (4 contracts), the planted
+violation, structure, deps, health, the SQL builder, the API contract, the
+no-formula-outside-calculator scan, and the front-end build / type-check / lint.
+It proves the code is well-formed and the layers hold. It proves no number is right —
+that is 03_green_stack.txt's job (decision D19).
+
+Baseline before Slice 2: 140 passed.
+
+$ cd src/backend && uv run pytest
+--------------------------------------------------------------------------------
+============================= test session starts =============================
+platform win32 -- Python 3.13.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: A:\Learning\AI\HongKong_AI_Assessment\src\backend
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.14.2, langsmith-0.11.1
+collected 339 items / 145 deselected / 194 selected
+
+tests\test_agent_rules.py .....                                          [  2%]
+tests\test_api_contract.py ........                                      [  6%]
+tests\test_dependencies.py ........                                      [ 10%]
+tests\test_frontend_gates.py ...                                         [ 12%]
+tests\test_gates.py ....                                                 [ 14%]
+tests\test_health.py ....                                                [ 16%]
+tests\test_no_formula_outside_calculator.py ............................ [ 30%]
+.......                                                                  [ 34%]
+tests\test_planted_violation.py ..                                       [ 35%]
+tests\test_query_statements.py ......................................... [ 56%]
+.............................                                            [ 71%]
+tests\test_query_tool.py ..............                                  [ 78%]
+tests\test_structure.py ......                                           [ 81%]
+tests\test_tool_validation.py ...................................        [100%]
+
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  A:\Learning\AI\HongKong_AI_Assessment\src\backend\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=============== 194 passed, 145 deselected, 1 warning in 11.17s ===============

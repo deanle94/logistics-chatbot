@@ -17,6 +17,7 @@ from collections import Counter, defaultdict
 from collections.abc import Iterator
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -269,3 +270,33 @@ def csv_between(
         if (ordered := parse_csv_date(row["order_date"])) is not None
         and date_from <= ordered <= date_to
     ]
+
+
+def csv_expected_rows(
+    rows: list[dict[str, str]], explanation: dict[str, Any]
+) -> dict[str | None, dict[str, float | int | None]]:
+    """Re-derive a chat answer's rows from the CSV, using only its echoed parameters.
+
+    The chat asks questions nobody wrote down in advance, so its oracle cannot be a table
+    of expected numbers. It is this instead: take the parameters the service says it ran,
+    run them again over the raw file with the standard library, and require the two to
+    agree. A calculator bug then makes the test disagree with the service rather than
+    quietly agree with it, which is the whole point of the oracle rule.
+    """
+    filters = dict(explanation.get("filters", {}))
+    selected = csv_between(
+        rows,
+        datetime.date.fromisoformat(str(filters.pop("date_from", "0001-01-01"))),
+        datetime.date.fromisoformat(str(filters.pop("date_to", "9999-12-31"))),
+    )
+    if filters:
+        selected = csv_filtered(selected, **{name: str(value) for name, value in filters.items()})
+
+    metrics = [str(metric) for metric in explanation.get("metrics", [])]
+    group_by = str(explanation.get("group_by", "none"))
+    if group_by == "none":
+        return {None: {metric: csv_metric_value(selected, metric) for metric in metrics}}
+    return {
+        key: {metric: csv_metric_value(bucket, metric) for metric in metrics}
+        for key, bucket in csv_grouped(selected, group_by).items()
+    }

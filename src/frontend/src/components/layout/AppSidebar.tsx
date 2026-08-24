@@ -1,17 +1,37 @@
 import { Database, LayoutDashboard, Sparkles, Truck } from 'lucide-react'
 
+import { cn } from '@/lib/utils'
+
+/** The two screens the application has. Slice 2 is the second one. */
+export type AppPage = 'dashboard' | 'chat'
+
+type AppSidebarProps = {
+  current: AppPage
+  onNavigate: (page: AppPage) => void
+}
+
+/** One nav item's classes. The active item is the only styling difference between them. */
+function navItemClass(active: boolean): string {
+  return cn(
+    'flex h-8 w-full items-center gap-2 rounded-lg px-2 text-sm hover:bg-accent',
+    active ? 'bg-accent font-medium' : 'text-muted-foreground',
+  )
+}
+
 /**
  * The 256px left rail of `docs/design/Main.dc.html`: brand, nav, dataset footer.
  *
  * Deliberately plain markup rather than shadcn's `sidebar` component. That component
  * brings a provider, a cookie-persisted open/closed state, a mobile sheet and a keyboard
- * shortcut; this rail has two items, one of which is inert. The machinery would outweigh
- * the feature (CLAUDE.md: do not over-engineer).
+ * shortcut; this rail has two items. The machinery would outweigh the feature
+ * (CLAUDE.md: do not over-engineer).
  *
- * "Ask AI" is rendered but does nothing - Slice 1 has no AI, it is Slice 2 work - so it is
- * a non-interactive item rather than a button that would lie about being clickable.
+ * "Ask AI" became a real button in Slice 2. Which page is showing is a `useState` in
+ * `App.tsx` rather than a router: two screens, no deep links and no back button asked for,
+ * so a routing library would be machinery for a navigation that is one boolean wide. The
+ * cost, stated plainly: the chat has no URL of its own and no browser back.
  */
-export function AppSidebar() {
+export function AppSidebar({ current, onNavigate }: AppSidebarProps) {
   return (
     <aside
       className="flex w-64 shrink-0 flex-col border-r bg-sidebar"
@@ -38,21 +58,26 @@ export function AppSidebar() {
         <div className="px-2 pb-1 text-xs leading-4 font-medium text-muted-foreground">
           Platform
         </div>
-        <div
-          className="flex h-8 items-center gap-2 rounded-lg bg-accent px-2 text-sm font-medium"
-          aria-current="page"
+        <button
+          type="button"
+          className={navItemClass(current === 'dashboard')}
+          aria-current={current === 'dashboard' ? 'page' : undefined}
+          onClick={() => onNavigate('dashboard')}
           data-testid="nav-dashboard"
         >
           <LayoutDashboard className="size-4" aria-hidden="true" />
           <span>Dashboard</span>
-        </div>
-        <div
-          className="flex h-8 items-center gap-2 rounded-lg px-2 text-sm text-muted-foreground"
+        </button>
+        <button
+          type="button"
+          className={navItemClass(current === 'chat')}
+          aria-current={current === 'chat' ? 'page' : undefined}
+          onClick={() => onNavigate('chat')}
           data-testid="nav-ask-ai"
         >
           <Sparkles className="size-4" aria-hidden="true" />
           <span>Ask AI</span>
-        </div>
+        </button>
       </nav>
 
       <div className="border-t p-3">

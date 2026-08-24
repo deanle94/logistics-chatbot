@@ -4,10 +4,14 @@ import { DeliveryPerformanceChart } from '@/components/dashboard/DeliveryPerform
 import { KpiRow } from '@/components/dashboard/KpiRow'
 import { OrderVolumeChart } from '@/components/dashboard/OrderVolumeChart'
 import { AppHeader } from '@/components/layout/AppHeader'
-import { AppSidebar } from '@/components/layout/AppSidebar'
+import { AppSidebar, type AppPage } from '@/components/layout/AppSidebar'
 import { useChart } from '@/hooks/useChart'
 import { useKpis } from '@/hooks/useKpis'
 import { CHART_ROUTES } from '@/lib/api'
+
+type DashboardPageProps = {
+  onNavigate: (page: AppPage) => void
+}
 
 /**
  * S1.5 - the dashboard of `docs/design/Main.dc.html`: five KPI cards and three charts.
@@ -23,7 +27,7 @@ import { CHART_ROUTES } from '@/lib/api'
  * Every hook sits above every return (react rule 12), so no conditional path can change the
  * hook order.
  */
-export default function DashboardPage() {
+export default function DashboardPage({ onNavigate }: DashboardPageProps) {
   const kpis = useKpis()
   const orderVolume = useChart(CHART_ROUTES.orderVolume)
   const deliveryPerformance = useChart(CHART_ROUTES.deliveryPerformance)
@@ -31,7 +35,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <AppSidebar />
+      <AppSidebar current="dashboard" onNavigate={onNavigate} />
 
       <div className="flex min-w-0 grow flex-col">
         <AppHeader />

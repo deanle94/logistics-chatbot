@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,6 +28,35 @@ class Settings(BaseSettings):
 
     database_url: str = Field(
         description="SQLAlchemy URL for the read-only application role.",
+    )
+
+
+class LlmSettings(BaseSettings):
+    """Which model answers questions, and the credential that reaches it.
+
+    Separate from :class:`Settings` so the seeder and any future component that needs a
+    database but no model cannot pull a required API key into their startup path.
+
+    The key is a :class:`SecretStr`: printing the settings object, logging it, or letting
+    it surface in a traceback all yield ``**********`` rather than the credential. There is
+    no default, so a missing key stops the process at startup instead of producing a
+    service that 401s on the customer's first question.
+    """
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", frozen=True)
+
+    anthropic_api_key: SecretStr = Field(
+        description="Credential for the model provider. Never logged, never committed.",
+    )
+    llm_model: str = Field(
+        description=(
+            "The one value that selects a provider, in init_chat_model's "
+            "'provider:model' form. Pinned to a dated model id, never an alias."
+        ),
+    )
+    llm_timeout_seconds: float = Field(
+        default=25.0,
+        description="Per-call ceiling, chosen to stay inside the chat route's 30 s budget.",
     )
 
 

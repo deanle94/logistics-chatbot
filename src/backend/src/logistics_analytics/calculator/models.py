@@ -42,6 +42,31 @@ class Metric(StrEnum):
     QUANTITY = "quantity"
 
 
+#: The metrics that are shares rather than counts of rows.
+#:
+#: Two of them cannot be drawn as one stacked bar - stacking two percentages on one axis
+#: means nothing - so Slice 2's tool schema rejects that pairing. The set lives here because
+#: "which metrics are rates" is a property of the definitions, not of the chart that draws
+#: them, and the front-end already keeps a second copy of this same fact (D22).
+RATE_METRICS: frozenset[Metric] = frozenset({Metric.DELAY_RATE, Metric.ON_TIME_RATE})
+
+#: One plain-language line per metric, for a reader who has never seen this schema.
+#:
+#: It exists because Slice 2's model has to choose between these seven names and the names
+#: alone were not enough - asked to compare on-time against late it picked two rates. The
+#: gloss is injected into the tool's parameter description at runtime rather than retyped in
+#: a prompt, so a metric added here describes itself everywhere without a second edit.
+METRIC_GLOSS: Mapping[Metric, str] = {
+    Metric.ORDER_COUNT: "how many orders were placed, whatever became of them",
+    Metric.DELIVERED_ORDERS: "how many orders arrived on time - a count of rows",
+    Metric.DELAYED_ORDERS: "how many orders arrived late - a count of rows",
+    Metric.DELAY_RATE: "share of the orders that finished which arrived late, as a percentage",
+    Metric.ON_TIME_RATE: "share of the orders that finished which arrived on time, a percentage",
+    Metric.AVG_DELIVERY_TIME: "mean days between placing an order and it arriving",
+    Metric.QUANTITY: "total units shipped",
+}
+
+
 class GroupBy(StrEnum):
     """Every bucketing a metric may be split by.
 

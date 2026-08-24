@@ -1,0 +1,21 @@
+S2.5 backend log — the same request window as 04_chat_sse_capture.txt.
+Captured 2026-08-24T02:22:21Z, window opened 2026-08-24T02:21:44Z.
+
+04 and 05 are both required and are not interchangeable: 04 proves the numbers were
+right, 05 proves a real service produced them. Health-check polling is filtered out —
+it is one GET /health every 5s and it drowns everything else.
+What to check: two POST /chat lines, both 200, and no traceback or 500 anywhere.
+
+$ docker compose logs backend | grep -v 'GET /health'
+--------------------------------------------------------------------------------
+INFO:logistics_analytics.main:application configured
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     172.27.0.4:54492 - "POST /chat HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+INFO:     172.27.0.4:54504 - "POST /chat HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"

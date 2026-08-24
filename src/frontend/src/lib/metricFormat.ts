@@ -32,3 +32,14 @@ export function formatMetricValue(
 export function isPercentMetric(metric: string): boolean {
   return PERCENT_METRICS.has(metric)
 }
+
+/**
+ * Turn a wire key such as `avg_delivery_time` into the words a person reads.
+ *
+ * Presentation only. It renames nothing and computes nothing, so no definition escapes the
+ * calculator. Slice 2 needs it as a shared helper because the chat labels series it only
+ * learns about when the answer arrives.
+ */
+export function humanizeKey(key: string): string {
+  return key.replaceAll('_', ' ')
+}
