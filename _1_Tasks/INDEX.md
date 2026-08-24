@@ -5,15 +5,14 @@ _Generated 08_24_2026. 3 spec(s)._
 
 | Status | Count |
 |---|---|
-| planned | 1 |
 | implemented | 1 |
-| verified | 1 |
+| verified | 2 |
 
 ## Chat
 
 | Status | Spec | Created | Updated | Folder |
 |---|---|---|---|---|
-| planned | [Slice2 Chat Queries](Chat/08_24_2026_slice2_chat_queries/spec.md) | 08_24_2026 | 08_24_2026 | `08_24_2026_slice2_chat_queries` |
+| verified | [Slice2 Chat Queries](Chat/08_24_2026_slice2_chat_queries/spec.md) | 08_24_2026 | 08_24_2026 | `08_24_2026_slice2_chat_queries` |
 
 ## Dashboard
 
