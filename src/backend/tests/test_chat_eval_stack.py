@@ -1,9 +1,9 @@
-"""S2.7 — the routing eval set, and the report it has to produce.
+"""S2.7 + S3.5 — the routing eval set, and the report it has to produce.
 
-The slice gate. Fourteen approved questions go through the live service once each and the
-run is scored on two things: did the model reach for the right tool with the right
-parameters, and did it state a figure nothing computed. Both are structural. Nothing here
-looks at wording.
+The slice gate. The approved questions go through the live service once each — Slice 2's
+fourteen plus Slice 3's four forecast questions — and the run is scored on two things: did
+the model reach for the right tool with the right parameters, and did it state a figure
+nothing computed. Both are structural. Nothing here looks at wording.
 
 Once each, deliberately. The agent tests retry because a single flake should not fail a
 criterion; an eval that retries is measuring its best attempt rather than its behaviour,
@@ -31,17 +31,18 @@ from tests.sse_reader import ask, invented_digits, numbers_in
 
 pytestmark = pytest.mark.stack
 
-#: Where S2.7's report lands. Named by the spec's evidence manifest, not invented here.
+#: Where the report lands. Named by the Slice 3 spec's evidence manifest, not invented
+#: here; one report now covers both tools (spec review Q5).
 REPORT_PATH = (
     REPO_ROOT
     / "_1_Tasks"
     / "Chat"
-    / "08_24_2026_slice2_chat_queries"
+    / "08_24_2026_21_02_slice3_chat_forecasting"
     / "evidence"
-    / "08_eval_report.md"
+    / "07_eval_report.md"
 )
 
-#: ``docs/tasks.md``'s ≥11/12 ratio, applied to the approved fourteen.
+#: ``docs/tasks.md``'s ≥11/12 ratio, deliberately kept at 1 over the grown set (D4.3).
 MAX_MISSES = 1
 
 CsvRows = list[dict[str, str]]
@@ -68,6 +69,8 @@ class EvalCase:
     metrics: tuple[str, ...] = ()
     group_by: str | None = None
     filter_prefixes: dict[str, str] = field(default_factory=dict)
+    missing_info: str = "time_bucket"
+    horizon: int | None = None
 
 
 #: The approved list (spec, O5). Four canonicals, six more queries, two out-of-domain
@@ -110,6 +113,24 @@ EVAL_CASES: tuple[EvalCase, ...] = (
     EvalCase(12, "Write a poem about logistics", "unsupported"),
     EvalCase(13, "Delayed orders by destination city", "unsupported"),
     EvalCase(14, "Show me the delayed orders trend", "follow_up"),
+    # Slice 3 (S3.5): the four forecast questions from the spec review. The SKUs are the
+    # dataset's own — PENCIL-0213 has the three months the window needs, PAPER-0197 one.
+    EvalCase(
+        15,
+        "Predict demand for PENCIL-0213 for the next 4 months",
+        "forecast_line",
+        filter_prefixes={"sku": "PENCIL-0213"},
+        horizon=4,
+    ),
+    EvalCase(
+        16,
+        "Forecast demand for CRAYON-0017 over the next 2 months",
+        "forecast_line",
+        filter_prefixes={"sku": "CRAYON-0017"},
+        horizon=2,
+    ),
+    EvalCase(17, "How much inventory should I plan?", "follow_up", missing_info="sku"),
+    EvalCase(18, "Predict demand for PAPER-0197 for the next 4 months", "unsupported"),
 )
 
 
@@ -140,11 +161,14 @@ def _check(case: EvalCase, result: dict[str, Any], csv_rows: CsvRows) -> tuple[b
 
     if case.display == "follow_up":
         follow_up = result["follow_up"] or {}
-        if follow_up.get("missing_info") != "time_bucket":
+        if follow_up.get("missing_info") != case.missing_info:
             return False, f"missing_info was {follow_up.get('missing_info')!r}"
         if numbers_in(str(follow_up.get("question", ""))):
             return False, "the follow-up question stated a figure"
         return True, f"asked for the {follow_up['missing_info']}"
+
+    if case.display == "forecast_line":
+        return _check_forecast(case, result, csv_rows)
 
     explanation = result["explanation"]
     if tuple(sorted(explanation["metrics"])) != tuple(sorted(case.metrics)):
@@ -164,6 +188,36 @@ def _check(case: EvalCase, result: dict[str, Any], csv_rows: CsvRows) -> tuple[b
     if actual_rows != expected:
         return False, "the rows disagree with the CSV re-read of the same parameters"
     return True, f"{explanation['metrics']} by {explanation['group_by']}, rows match the CSV"
+
+
+def _check_forecast(case: EvalCase, result: dict[str, Any], csv_rows: CsvRows) -> tuple[bool, str]:
+    """Score one forecast answer: routing, echoed params, history vs CSV, horizon.
+
+    The forecast *values* are scored in ``test_chat_forecast_stack.py`` against a hand
+    oracle; here the routing questions are whether the model reached the forecast tool
+    with the right SKU and horizon, and whether the history is the CSV's.
+    """
+    explanation = result["explanation"]
+    if explanation["metrics"] != ["quantity"] or explanation["group_by"] != "month":
+        return False, f"history query was {explanation['metrics']} by {explanation['group_by']}"
+    for name, prefix in case.filter_prefixes.items():
+        actual = explanation["filters"].get(name, "")
+        if not str(actual).startswith(prefix):
+            return False, f"filter {name} was {actual!r}, expected to start {prefix!r}"
+
+    history = {
+        row["group"]: {"quantity": row["quantity"]} for row in result["rows"] if "quantity" in row
+    }
+    if history != csv_expected_rows(csv_rows, explanation):
+        return False, "the history rows disagree with the CSV re-read of the same parameters"
+
+    forecast = result.get("forecast") or {}
+    if case.horizon is not None and forecast.get("horizon") != case.horizon:
+        return False, f"horizon was {forecast.get('horizon')!r}, expected {case.horizon}"
+    forecast_rows = [row for row in result["rows"] if "forecast" in row]
+    if len(forecast_rows) != forecast.get("horizon"):
+        return False, f"{len(forecast_rows)} forecast rows for horizon {forecast.get('horizon')!r}"
+    return True, f"forecast for {forecast.get('sku')}, history matches the CSV"
 
 
 def _run(case: EvalCase, base_url: str, csv_rows: CsvRows) -> Verdict:

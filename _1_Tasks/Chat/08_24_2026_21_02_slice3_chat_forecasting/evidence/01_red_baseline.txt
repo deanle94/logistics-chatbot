@@ -1,0 +1,40 @@
+# RED baseline - Slice 3, captured before any implementation code exists
+# Date: 2026-08-25  Worktree: HongKong_AI_Assessment-slice3-forecast
+
+## Command 1 (static-set S3.1/S3.2/S3.4 unit tests - must fail RED):
+$ uv run pytest tests/test_forecast_calculator.py tests/test_forecast_tool.py
+_____________ ERROR collecting tests/test_forecast_calculator.py ______________
+ImportError while importing test module 'A:\Learning\AI\HongKong_AI_Assessment-slice3-forecast\src\backend\tests\test_forecast_calculator.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Admin\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_forecast_calculator.py:19: in <module>
+    from logistics_analytics.calculator.forecast import (
+E   ModuleNotFoundError: No module named 'logistics_analytics.calculator.forecast'
+________________ ERROR collecting tests/test_forecast_tool.py _________________
+ImportError while importing test module 'A:\Learning\AI\HongKong_AI_Assessment-slice3-forecast\src\backend\tests\test_forecast_tool.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Admin\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_forecast_tool.py:22: in <module>
+    from logistics_analytics.tools.forecast_tool import run_forecast_tool
+E   ModuleNotFoundError: No module named 'logistics_analytics.tools.forecast_tool'
+=========================== short test summary info ===========================
+ERROR tests/test_forecast_calculator.py
+ERROR tests/test_forecast_tool.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!
+============================== 2 errors in 0.31s ==============================
+
+## Command 2 (stack-marked S3.1-oracle/S3.2/S3.4 tests + grown S3.5 eval - deselected by the
+## stack marker in the static run, as shown below; they are red by construction today because
+## display 'forecast_line' has no producer. Not RUN here: -m stack needs the paid model + compose stack (a separate agent runs that).
+$ uv run pytest --collect-only -q tests/test_chat_forecast_stack.py tests/test_chat_eval_stack.py
+
+no tests collected (5 deselected) in 0.07s
+
+## Note: e2e/chat-forecast.spec.ts (S3.3) is written but requires the live compose stack;
+## it fails today because display 'forecast_line' has no producer and no renderer.

@@ -50,6 +50,9 @@ def _run_lint(project_dir: Path) -> subprocess.CompletedProcess[str]:
         cwd=project_dir,
         capture_output=True,
         text=True,
+        # Windows would otherwise decode the pipes as cp1252 and crash the reader thread
+        # on the config's non-ASCII characters, leaving stdout None (approved gate repair).
+        encoding="utf-8",
         timeout=LINT_TIMEOUT_SECONDS,
         check=False,
         env={

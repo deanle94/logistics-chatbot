@@ -1,6 +1,7 @@
 import { ExplainabilityPanel } from '@/components/chat/ExplainabilityPanel'
 import { BarAnswer } from '@/components/chat/answers/BarAnswer'
 import { FollowUpAnswer } from '@/components/chat/answers/FollowUpAnswer'
+import { ForecastAnswer } from '@/components/chat/answers/ForecastAnswer'
 import { LineAnswer } from '@/components/chat/answers/LineAnswer'
 import { StackedAnswer } from '@/components/chat/answers/StackedAnswer'
 import { StatAnswer } from '@/components/chat/answers/StatAnswer'
@@ -23,6 +24,7 @@ const DISPLAY_LABEL: Record<ChatResult['display'], string> = {
   stacked: 'Two series',
   unsupported: 'Not available',
   follow_up: 'Needs one detail',
+  forecast_line: 'Forecast',
 }
 
 /**
@@ -77,6 +79,9 @@ export function AnswerCard({ result, onAnswerFollowUp }: AnswerCardProps) {
         {result.display === 'unsupported' && <UnsupportedAnswer />}
         {result.display === 'follow_up' && result.follow_up !== null && (
           <FollowUpAnswer followUp={result.follow_up} onAnswer={onAnswerFollowUp} />
+        )}
+        {result.display === 'forecast_line' && result.forecast !== null && (
+          <ForecastAnswer rows={result.rows} forecast={result.forecast} />
         )}
       </CardContent>
 

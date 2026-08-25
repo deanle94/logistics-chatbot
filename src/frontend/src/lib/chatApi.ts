@@ -9,14 +9,22 @@ import type { ChartParams, ChartRow } from '@/lib/api'
  * so the dashboard keeps axios (S0.6 checks the manifest) and this file adds no dependency.
  */
 
-/** The advisory progress stages, as a closed set (decision D23b). */
-export type ChatStage = 'interpreting' | 'querying' | 'composing'
+/** The advisory progress stages, as a closed set (decision D23b; `forecasting` is the
+ * Slice 3 hand-extension of spec review Q3). */
+export type ChatStage = 'interpreting' | 'querying' | 'forecasting' | 'composing'
 
 /**
  * How an answer is drawn. The backend decides this from the parameters it ran, never the
  * browser and never the model - a chart chosen by a model can be one the data cannot carry.
  */
-export type ChatDisplay = 'stat' | 'line' | 'bar' | 'stacked' | 'unsupported' | 'follow_up'
+export type ChatDisplay =
+  | 'stat'
+  | 'line'
+  | 'bar'
+  | 'stacked'
+  | 'unsupported'
+  | 'follow_up'
+  | 'forecast_line'
 
 /** The single figure a stat answer prints. */
 export interface ChatStat {
@@ -37,6 +45,22 @@ export interface ChatFollowUp {
 }
 
 /**
+ * The typed forecast block of a `forecast_line` answer (Slice 3).
+ *
+ * Typed rather than fished out of prose: the card renders the recommendation and the
+ * methodology from these fields, and every digit in them came from the calculator.
+ */
+export interface ChatForecast {
+  sku: string
+  horizon: number
+  window: number
+  total: number
+  recommended_stock: number
+  buffer_pct: number
+  methodology: string
+}
+
+/**
  * One complete answer. Every legal outcome is this shape, refusals and follow-ups included,
  * so the interface has one card to render rather than three.
  *
@@ -50,6 +74,7 @@ export interface ChatResult {
   rows: ChartRow[]
   explanation: (ChartParams & { row_count: number }) | null
   follow_up: ChatFollowUp | null
+  forecast: ChatForecast | null
 }
 
 /** What the reader hands back as the stream runs. */
