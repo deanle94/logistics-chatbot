@@ -1,0 +1,47 @@
+=== Evidence 04: raw SSE frames, curl -N against the live backend (http://localhost:8000/chat) ===
+=== Captured: 2026-08-25T15:06:31Z ===
+
+--- Question 1 (forecast, SKU with >=3 months of history, horizon 4) ---
+$ curl -N -s -X POST http://localhost:8000/chat -H "Content-Type: application/json" -d "{\"question\": \"Predict demand for CRAYON-0017 for the next 4 months\", \"conversation_id\": \"evidence-04-forecast\"}"
+
+event: stage
+data: {"stage": "interpreting"}
+
+event: stage
+data: {"stage": "querying"}
+
+event: stage
+data: {"stage": "forecasting"}
+
+event: stage
+data: {"stage": "composing"}
+
+event: result
+data: {"answer": "Demand for CRAYON-0017 is forecast at 2 units per month for the next 4 months, totalling 8 units. We recommend holding 10 units in stock to cover this with a 15% safety buffer.", "display": "forecast_line", "data": null, "rows": [{"group": "2025-01", "quantity": 2}, {"group": "2025-08", "quantity": 2}, {"group": "2025-10", "quantity": 2}, {"group": "2025-11", "forecast": 2}, {"group": "2025-12", "forecast": 2}, {"group": "2026-01", "forecast": 2}, {"group": "2026-02", "forecast": 2}], "explanation": {"metrics": ["quantity"], "group_by": "month", "filters": {"sku": "CRAYON-0017"}, "order": "group", "row_count": 3}, "follow_up": null, "forecast": {"sku": "CRAYON-0017", "horizon": 4, "window": 3, "total": 8.0, "recommended_stock": 10, "buffer_pct": 15.0, "methodology": "Each month ahead is the average of the 3 months before it, using earlier projections once the recorded months run out. Monthly demand is the total quantity ordered for CRAYON-0017 in that month. Averaging smooths the series, so read the 4-month total of 8 units as a floor rather than an exact figure; the recommended stock adds a 15% safety buffer on top \u2014 our assumption, not something the orders state."}}
+
+event: done
+data: {}
+
+
+--- Question 2 (sparse-history SKU CRAYON-0008, only 2 months in the CSV -> unsupported refusal) ---
+$ curl -N -s -X POST http://localhost:8000/chat -H "Content-Type: application/json" -d "{\"question\": \"Predict demand for CRAYON-0008 for the next 4 months\", \"conversation_id\": \"evidence-04-refusal\"}"
+
+event: stage
+data: {"stage": "interpreting"}
+
+event: stage
+data: {"stage": "querying"}
+
+event: stage
+data: {"stage": "forecasting"}
+
+event: stage
+data: {"stage": "composing"}
+
+event: result
+data: {"answer": "I can only forecast a product with at least three whole months of order history, and this product code has less than that on record. I can show its monthly quantity instead, or forecast a product that has been ordered for longer.", "display": "unsupported", "data": null, "rows": [], "explanation": null, "follow_up": null, "forecast": null}
+
+event: done
+data: {}
+
+

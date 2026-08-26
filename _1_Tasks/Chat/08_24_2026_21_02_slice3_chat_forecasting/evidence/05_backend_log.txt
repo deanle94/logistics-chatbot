@@ -1,0 +1,16 @@
+=== Evidence 05: docker compose logs backend (same window as evidence 04), health-check noise filtered ===
+=== Captured: 2026-08-25T15:06:59Z — two POST /chat requests, both 200, no 500s ===
+
+backend-1  | INFO:logistics_analytics.main:application configured
+backend-1  | INFO:     Started server process [1]
+backend-1  | INFO:     Waiting for application startup.
+backend-1  | INFO:     Application startup complete.
+backend-1  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+backend-1  | INFO:     172.27.0.1:41104 - "POST /chat HTTP/1.1" 200 OK
+backend-1  | INFO:httpx:HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+backend-1  | INFO:httpx:HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+backend-1  | INFO:httpx:HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+backend-1  | INFO:     172.27.0.1:43326 - "POST /chat HTTP/1.1" 200 OK
+backend-1  | INFO:httpx:HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+backend-1  | INFO:httpx:HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+backend-1  | INFO:httpx:HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"

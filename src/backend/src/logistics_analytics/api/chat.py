@@ -18,7 +18,7 @@ from __future__ import annotations
 import json
 import logging
 from collections.abc import AsyncIterator
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
@@ -30,8 +30,9 @@ from logistics_analytics.agent.graph import ANSWER_NODE, CLASSIFY_NODE, ENFORCE_
 
 logger = logging.getLogger(__name__)
 
-#: The closed stage enum (D23b). Advisory only — an interface that ignores them still works.
-Stage = Literal["interpreting", "querying", "composing"]
+#: The closed stage enum (D23b), hand-extended with ``forecasting`` for Slice 3 (spec
+#: review Q3). Advisory only — an interface that ignores them still works.
+Stage = Literal["interpreting", "querying", "forecasting", "composing"]
 
 #: Which stage each of our node updates announces. ``enforce`` announces nothing: the
 #: result frame follows it immediately, and a stage line nobody sees is noise.
@@ -85,6 +86,24 @@ class ChatFollowUp(BaseModel):
     options: list[str]
 
 
+class ChatForecast(BaseModel):
+    """The typed forecast block of a ``forecast_line`` answer (Slice 3, decision D27).
+
+    Typed rather than fished out of prose so the card renders the recommendation and the
+    methodology from fields, and the digit checks treat them as evidence. ``total`` is the
+    sum of the projected values; ``recommended_stock`` is that total plus the safety
+    buffer, in whole units.
+    """
+
+    sku: str
+    horizon: int
+    window: int
+    total: float
+    recommended_stock: int
+    buffer_pct: float
+    methodology: str
+
+
 class ChatResult(BaseModel):
     """The one result frame. Every legal answer is this shape, refusals included.
 
@@ -94,11 +113,12 @@ class ChatResult(BaseModel):
     """
 
     answer: str
-    display: Literal["stat", "line", "bar", "stacked", "unsupported", "follow_up"]
+    display: Literal["stat", "line", "bar", "stacked", "unsupported", "follow_up", "forecast_line"]
     data: ChatStat | None
     rows: list[dict[str, str | float | int | None]]
     explanation: ChatExplanation | None
     follow_up: ChatFollowUp | None
+    forecast: ChatForecast | None = None
 
 
 def create_chat_router(chat_graph: ChatGraph) -> APIRouter:
@@ -148,12 +168,30 @@ async def _stream(chat_graph: ChatGraph, request: ChatRequest) -> AsyncIterator[
     result: ChatResult | None = None
 
     try:
-        async for update in chat_graph.astream(
+        async for item in chat_graph.astream(
             {"messages": [HumanMessage(content=request.question)]},
             config=config,
-            stream_mode="updates",
+            # Two modes, so the frames become tuples. ``custom`` carries the forecast
+            # tool's mid-run stage event, which no node update can announce because the
+            # tool runs *inside* the answer node (D29). ``subgraphs=True`` is what lets
+            # that event out at all — the tool executes in ``create_agent``'s inner graph,
+            # and without it the parent stream swallows the chunk (measured, not read).
+            # Node names are still never inspected: subgraph updates are skipped whole.
+            stream_mode=["updates", "custom"],
+            subgraphs=True,
         ):
-            for node, payload in update.items():
+            # ``astream`` is typed as yielding dicts OR tuples; with a mode list and
+            # ``subgraphs`` it is always (namespace, mode, chunk), which mypy cannot know
+            # without the cast.
+            namespace, mode, chunk = cast("tuple[tuple[str, ...], str, Any]", item)
+            if mode == "custom":
+                custom_stage = chunk.get("stage") if isinstance(chunk, dict) else None
+                if isinstance(custom_stage, str):
+                    yield _frame("stage", {"stage": custom_stage})
+                continue
+            if namespace:
+                continue
+            for node, payload in chunk.items():
                 stage = STAGE_AFTER_NODE.get(node)
                 if stage is not None and (node != CLASSIFY_NODE or payload.get("is_allowed")):
                     yield _frame("stage", {"stage": stage})

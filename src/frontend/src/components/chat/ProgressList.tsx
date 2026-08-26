@@ -16,6 +16,7 @@ type ProgressListProps = {
 const STAGE_LABEL: Record<ChatStage, string> = {
   interpreting: 'Understood your question',
   querying: 'Found the right figures to count',
+  forecasting: 'Forecasting demand',
   composing: 'Counting across your orders',
 }
 

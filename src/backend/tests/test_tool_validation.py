@@ -203,8 +203,9 @@ def test_missing_info_is_a_closed_enum() -> None:
     It is the example ``docs/agent-design.md`` itself uses for ``missing_info``, and an
     unstated period is not missing information - it means every order on record. The enum
     is what makes "which period do you mean?" unaskable rather than merely discouraged.
+    ``SKU`` joined in Slice 3 because the forecast tool genuinely requires one.
     """
-    assert set(MissingInfo) == {MissingInfo.METRIC, MissingInfo.TIME_BUCKET}
+    assert set(MissingInfo) == {MissingInfo.METRIC, MissingInfo.TIME_BUCKET, MissingInfo.SKU}
 
     with pytest.raises(ValidationError):
         FollowUpParams(missing_info="time range", question="Which period?")  # type: ignore[arg-type]

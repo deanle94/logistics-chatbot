@@ -10,6 +10,8 @@ The calculator module owns these. They are the only definitions in the system.
 | On-time delivery rate | delivered ÷ (delivered + delayed)                                        | 84.7%    |
 | Average delivery time | mean(`delivery_date` − `order_date`) over rows that have a delivery date | 370 rows |
 | Demand                | `quantity` per SKU per month                                             | —        |
+| Forecast method       | 3-month moving average, recursive: each month ahead = mean of the 3 before it (projections included), rounded half-up to whole units | — |
+| Safety buffer         | recommended stock = ⌈forecast total × (1 + buffer)⌉; buffer is our assumption, not a figure the orders state | 15%      |
 
 ### How each status is treated
 

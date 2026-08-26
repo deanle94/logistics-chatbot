@@ -27,9 +27,9 @@ from typing import Any
 
 import httpx
 
-#: The closed stage enum of decision D23b. Anything else in a stage frame is a contract
-#: break, not a new feature.
-LEGAL_STAGES: frozenset[str] = frozenset({"interpreting", "querying", "composing"})
+#: The closed stage enum of decision D23b, hand-extended with ``forecasting`` for Slice 3
+#: (spec review Q3). Anything else in a stage frame is a contract break, not a new feature.
+LEGAL_STAGES: frozenset[str] = frozenset({"interpreting", "querying", "forecasting", "composing"})
 
 #: S2.5's budget for one answer, end to end, through the real model.
 ANSWER_BUDGET_SECONDS = 30.0
@@ -169,6 +169,7 @@ def invented_digits(result: dict[str, Any]) -> set[float]:
             "data": result.get("data"),
             "rows": result.get("rows"),
             "explanation": result.get("explanation"),
+            "forecast": result.get("forecast"),
         }
     )
     return numbers_in(str(result.get("answer", ""))) - numbers_in(evidence)

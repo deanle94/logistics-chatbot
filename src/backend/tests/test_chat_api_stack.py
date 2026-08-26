@@ -75,10 +75,18 @@ def test_at_least_one_progress_stage_arrives_before_the_answer(
 def test_the_result_frame_carries_every_field_the_interface_needs(
     total_orders_answer: Answer,
 ) -> None:
-    """One envelope: answer, display, data, rows, explanation, follow-up."""
+    """One envelope: answer, display, data, rows, explanation, follow-up, forecast."""
     result = total_orders_answer.result
 
-    assert set(result) == {"answer", "display", "data", "rows", "explanation", "follow_up"}
+    assert set(result) == {
+        "answer",
+        "display",
+        "data",
+        "rows",
+        "explanation",
+        "follow_up",
+        "forecast",
+    }
     assert result["answer"]
     assert result["display"] == "stat"
     assert set(result["explanation"]) == {

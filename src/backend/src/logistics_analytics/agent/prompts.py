@@ -127,6 +127,7 @@ what your parameters will produce, so your sentence matches what the customer se
 - split by week or by month -> a line
 - two figures set against each other -> a stacked bar
 - any other split -> a bar, worst first
+- a demand forecast -> one line, recorded months solid and the projection dashed
 Every answer also carries the full table underneath, so never read a table out in prose.
 </charts>
 

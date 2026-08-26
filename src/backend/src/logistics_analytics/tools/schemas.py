@@ -42,6 +42,15 @@ FilterValue = Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9][A-Za-z0-9 
 #: The metric gloss, rendered once for the parameter description the model reads.
 METRIC_HELP = "; ".join(f"{metric.value} is {gloss}" for metric, gloss in METRIC_GLOSS.items())
 
+#: The one key an in-domain refusal hands back. Deliberately *not* an answer envelope: the
+#: agent's enforce node is the single place a refusal envelope is ever built (agent-design
+#: rule 4 / D23), so the refusal layers cannot drift into shapes that merely look alike. It
+#: lives here rather than in ``query_tool`` because two tools now refuse — the refusal
+#: sentinel and the forecast tool on insufficient history — and the same constant is
+#: spelled out in ``agent/nodes.py`` because ``agent/`` may not import this package
+#: (rule 5).
+REFUSAL_REASON_KEY = "refusal_reason"
+
 
 class DateRangeSymbol(StrEnum):
     """Relative periods the model may name without doing any date arithmetic.
@@ -60,16 +69,20 @@ class DateRangeSymbol(StrEnum):
 
 
 class MissingInfo(StrEnum):
-    """The only two things a follow-up question may ask for.
+    """The only things a follow-up question may ask for.
 
     Closed rather than a free string (agent-design D3). The one thing that repeatedly went
     wrong against the real model was asking the user for a period they never restricted;
     an unstated filter is not missing information, it means every order on record, and an
     enum makes "which period do you mean?" unaskable rather than merely discouraged.
+
+    ``SKU`` joined in Slice 3: a forecast without a product code is the one case where a
+    filter genuinely is the missing parameter, because the forecast tool requires it.
     """
 
     METRIC = "metric"
     TIME_BUCKET = "time_bucket"
+    SKU = "sku"
 
 
 class QueryToolParams(BaseModel):
@@ -135,6 +148,34 @@ class QueryToolParams(BaseModel):
             message = "two figures may only be compared when both are counts of orders"
             raise ValueError(message)
         return self
+
+
+class ForecastToolParams(BaseModel):
+    """A validated forecast request: which product, how many months ahead.
+
+    Everything else about the forecast — the history query, the window, the buffer — is
+    the calculator's and is deliberately not a parameter: a model that could vary the
+    window would be choosing the method, and the AI never computes.
+
+    Frozen and ``extra="forbid"`` for the same reasons as :class:`QueryToolParams`; the
+    horizon bounds make a two-year extrapolation from a 3-month window unrequestable
+    rather than merely discouraged.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    sku: FilterValue = Field(
+        description=(
+            "The product code to forecast, exactly as the customer said it. Required - "
+            "ask a follow-up rather than guessing one."
+        ),
+    )
+    horizon: int = Field(
+        default=4,
+        ge=1,
+        le=12,
+        description="How many months ahead to project. Use the default when unstated.",
+    )
 
 
 class FollowUpParams(BaseModel):

@@ -1,5 +1,7 @@
 """S2.2 — the one tool that actually runs a query, plus the two that deliberately do not.
 
+(Slice 3 adds a fourth, built in ``forecast_tool`` and appended by ``build_agent_tools``.)
+
 This layer is the seam between a validated request and the S1.2 engine. It adds no formula:
 what a metric is and what a bucket is are both defined in ``calculator/``. What it does own
 is everything the model must not decide — resolving a relative period to real dates
@@ -34,7 +36,9 @@ from logistics_analytics.calculator.models import (
     QuerySpec,
 )
 from logistics_analytics.calculator.query import ExecuteQuery, run_query
+from logistics_analytics.tools.forecast_tool import build_forecast_tool
 from logistics_analytics.tools.schemas import (
+    REFUSAL_REASON_KEY,
     DateRangeSymbol,
     FollowUpParams,
     QueryToolParams,
@@ -51,13 +55,6 @@ MONTHS_BACK: dict[DateRangeSymbol, int] = {
 
 #: The two buckets that carry a natural order, so only they are drawn as a series.
 TIME_BUCKETS: frozenset[GroupBy] = frozenset({GroupBy.WEEK, GroupBy.MONTH})
-
-#: The one key an in-domain refusal hands back. Deliberately *not* an answer envelope: the
-#: agent's enforce node is the single place a refusal envelope is ever built (agent-design
-#: rule 4 / D23), so the two refusal layers cannot drift into two shapes that merely look
-#: alike. This layer therefore reports only *why*, and the same constant is spelled out in
-#: ``agent/nodes.py`` because ``agent/`` may not import this package (rule 5).
-REFUSAL_REASON_KEY = "refusal_reason"
 
 
 class DisplayType(StrEnum):
@@ -134,12 +131,13 @@ def run_query_tool(
 
 
 def build_agent_tools(execute: ExecuteQuery) -> list[BaseTool]:
-    """The three legal outputs of the Answer node, as tools it can call.
+    """The four legal outputs of the Answer node, as tools it can call.
 
     Two of them run nothing. Making the follow-up and the refusal *tools* rather than prose
-    is what lets forced tool choice apply to all three: with the provider refusing to return
-    bare text on the first turn, "a tool call before any text" is structural rather than an
-    instruction the model may ignore.
+    is what lets forced tool choice apply to all of them: with the provider refusing to
+    return bare text on the first turn, "a tool call before any text" is structural rather
+    than an instruction the model may ignore. The forecast (Slice 3, the documented 4th
+    output) is built in ``forecast_tool`` and appended here, so this stays the single list.
 
     The executor is injected and the list is handed to ``agent/`` by the composition root,
     which is what keeps the agent layer free of any import into this one.
@@ -164,9 +162,10 @@ def build_agent_tools(execute: ExecuteQuery) -> list[BaseTool]:
             func=_ask_follow_up,
             name="ask_follow_up",
             description=(
-                "Ask the customer for the one parameter a query needs and the question did "
-                "not give. Only for a figure or a time bucket that is genuinely absent - "
-                "not for an attribute no query offers, which is a refusal instead."
+                "Ask the customer for the one parameter a tool needs and the question did "
+                "not give. Only for a figure, a time bucket or the product code a forecast "
+                "needs, when it is genuinely absent - not for an attribute no query "
+                "offers, which is a refusal instead."
             ),
             args_schema=FollowUpParams,
         ),
@@ -181,6 +180,7 @@ def build_agent_tools(execute: ExecuteQuery) -> list[BaseTool]:
             ),
             args_schema=RefusalParams,
         ),
+        build_forecast_tool(execute),
     ]
 
 

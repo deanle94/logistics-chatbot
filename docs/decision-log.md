@@ -292,6 +292,46 @@ Taken at design review, before any Slice 2 code. The first transport decision in
 | **Why** | Import-linter contract 1 forbids *chains*, not just direct edges — proven by planting `agent → tools → calculator`, which turned it BROKEN; injection leaves no edge at all. The envelope rides the message because the state is fixed at three fields, and because an answer and the explanation of it should not be able to drift apart in the checkpoint. |
 | **Gave up** | `agent/` cannot name the tool it expects, so a missing tool is a runtime failure rather than an import error — bought back by S2.3/S2.7, which fail loudly on exactly that. `additional_kwargs` is a LangChain extension point, not a field of ours. |
 
+### D27 — Forecast answers carry a typed `forecast` block
+
+|  |  |
+| --- | --- |
+| **Chose** | `ChatResult` gains `forecast: {sku, horizon, window, total, recommended_stock, buffer_pct, methodology} \| null`; `explanation` keeps its exact S2 meaning (the history query, so the CSV oracle re-derives the history rows unchanged). All maths in the new `calculator/forecast.py`; the tool fills `{sku, horizon}` only. |
+| **Why** | The card and the digit checks read the recommendation and methodology from fields; overloading `explanation` or prose would muddy the explainability contract the stack oracle re-derives rows from. |
+| **Gave up** | One more wire field every other display carries as `null`. |
+
+### D28 — History and prediction share one `rows` array under two value keys
+
+|  |  |
+| --- | --- |
+| **Chose** | History rows stay byte-identical to the S1.2 shape (`{group, quantity}`); the N forecast rows use `{group, forecast}`. The dashed line's bridge point is derived in the frontend component, not sent. |
+| **Why** | Which points are measured and which are projected is data, not inference; recharts draws both series from the same array with zero pivoting, and the history oracle needs no marker stripped. |
+| **Gave up** | A segment-marker column; forecast rows show "—" in the reused data table's quantity column. |
+
+### D29 — The `forecasting` stage is a LangGraph custom stream event
+
+|  |  |
+| --- | --- |
+| **Chose** | The tool emits `{"stage": "forecasting"}` via `get_stream_writer` (no-op without a graph runtime); `api/chat.py` streams `stream_mode=["updates", "custom"]` **with `subgraphs=True`** and turns custom chunks into stage frames; subgraph *updates* are skipped whole, so no node name is ever inspected. Enum extended by hand in its four spelt-out places. |
+| **Why** | The tool runs *inside* the answer node, so no node update can announce it; node sniffing would couple `api/` to `create_agent`'s internals (rejected once already, D23b). `subgraphs=True` is a measured necessity, not a choice: without it langgraph 1.2.11 swallows a custom chunk emitted inside `create_agent`'s inner graph (proven with a scripted fake model) — the approved fallback, recorded as a deviation. |
+| **Gave up** | The stage's origin is the tool rather than the graph topology; every stream item now carries a namespace the route ignores. |
+
+### D30 — Insufficient history refuses; the recommendation is buffer-only
+
+|  |  |
+| --- | --- |
+| **Chose** | Fewer than 3 months with data (unknown SKU = 0) → the tool hands back the same single-key refusal-reason JSON as the refusal sentinel; the reason is digit-free, so it names the history problem without quoting the SKU code (codes carry digits). Recommendation = ⌈total × 1.15⌉, buffer only — the design mock's reorder-point line and "lead time 20 days" chip are dropped (spec review Q2). `REFUSAL_REASON_KEY` moved from `query_tool.py` to `schemas.py` so both refusing tools import one constant without a cycle. |
+| **Why** | A 3-month average over fewer than 3 months is an invented figure; the mock's 20-day lead time is a constant the orders do not state (avg delivery time is transit, not procurement). |
+| **Gave up** | Best-effort forecasts for 353 of the 355 SKUs the sparse dataset holds; the mock's reorder-point feature. |
+
+### D31 — "A sku-missing forecast question is in scope" lives in the tool descriptions
+
+|  |  |
+| --- | --- |
+| **Chose** | When the eval's "How much inventory should I plan?" was refused by the scope gate instead of drawing a `sku` follow-up, the fix went into the `forecast` and `ask_follow_up` tool descriptions (planning questions are in scope with or without a product code; a missing code is a follow-up, never a refusal). No prompt was edited. |
+| **Why** | The classifier's prompt is rendered from the tools' own descriptions (D26), so a routing fact about a tool belongs on the tool — the same "fixes go into schemas, not prompts" rule Slice 2 measured. Verified 5/5 on the live model, with Q13/Q14 routing unchanged. |
+| **Gave up** | Two slightly longer descriptions every turn pays tokens for. |
+
 
 ---
 
@@ -343,3 +383,5 @@ The expected numbers (400 rows; `delivered 304, delayed 55, in_transit 27, excep
 canceled 3`) are derived in `tests/conftest.py` by re-reading
 `infra/data/mock_logistics_data.csv` with the standard library, never from the seeder. If the
 seeder and the oracle ever disagree, the tests fail.
+
+- **Planted-violation gate on Windows** *(dated 08_25_2026, approved at the Slice 3 review)*. `tests/test_planted_violation.py::_run_lint` gained `encoding="utf-8"`: the default cp1252 pipe decoding crashed the reader thread on import-linter's non-ASCII output, leaving `stdout=None` and a TypeError. One line; a pre-existing environment failure, no criterion changed.
