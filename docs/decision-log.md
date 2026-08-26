@@ -343,6 +343,34 @@ Taken at design review, before any Slice 2 code. The first transport decision in
 
 ---
 
+## Slice 4 — Hardening & docs
+
+### D33 — Secret scan (S4.2): zero-dep pattern test in the static set
+
+|  |  |
+| --- | --- |
+| **Chose** | `tests/test_secret_scan.py`: walk `git ls-files`, grep tracked content for high-signal token shapes (`sk-ant-…`, `AKIA…`, `ghp_`/`github_pat_…`, private-key blocks, `lsv2_…`) and non-empty known-key assignments; assert `.env` is git-ignored. |
+| **Why** | Same gate shape as D7 (exit-code verdict), zero new dependency, no false-positive baseline to maintain. |
+| **Gave up** | Entropy-based detection of unknown token shapes. Rejected `detect-secrets` (its curated baseline can itself mask a secret) and `gitleaks` (per-machine binary — a reviewer's clone couldn't run the gate). |
+
+### D34 — Env parity (S4.1): derived list, commented mentions count
+
+|  |  |
+| --- | --- |
+| **Chose** | The doc-check derives the expected vars from the code at test time — `config.py`'s three Settings classes via `model_fields` plus a grep for `import.meta.env.<NAME>` — and asserts each appears in `.env.example`. Compose-derived vars land there as **commented** entries. |
+| **Why** | Matches S4.1 literally ("every env var in code is in example file") and the list can never go stale, because it is derived rather than hardcoded. |
+| **Gave up** | A smaller `.env.example` (~8 commented lines). Rejected: parity against `.env.example` ∪ compose defaults — reinterprets the pass-when and needs YAML parsing in the test. |
+
+### D35 — README strictness: exactly 8 H2s, body ≤ 150 lines
+
+|  |  |
+| --- | --- |
+| **Chose** | `tests/test_docs_gate.py` asserts the H2 set **equals** the 8 required headings in `docs/tasks.md` order (`###` subsections free), body ≤ 150 lines, each section ≤ 40. Deployment folds into Setup as an H3. |
+| **Why** | Strictest reading of "contains exactly these headings" — the check cannot rot into "8 among 20", and "concise" becomes a gate instead of an opinion. |
+| **Gave up** | Deployment as a top-level section; future README growth must consciously raise the cap (one-line test change + a log entry here). |
+
+---
+
 ## Corrections made to the specs
 
 All dated 08_23_2026. No acceptance criterion was loosened and no expected number changed.

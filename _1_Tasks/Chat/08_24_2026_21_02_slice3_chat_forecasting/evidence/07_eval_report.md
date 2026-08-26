@@ -1,6 +1,6 @@
 # Slice 2 routing eval (S2.7)
 
-- Run: 2026-08-26T00:58:27+00:00
+- Run: 2026-08-26T01:20:52+00:00
 - Model: `anthropic:claude-haiku-4-5-20251001`
 - Score: **18/18** correct tool + parameters (pass bar: at most 1 miss)
 - Invented digits across the set: **0**
