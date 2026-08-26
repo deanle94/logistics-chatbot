@@ -100,5 +100,5 @@ Execution followed this design; eight small detail deviations were made and reco
 7. Envelope key-set test gained `"forecast"`.
 8. `forecast`/`ask_follow_up` tool descriptions reworded so sku-less planning questions draw a follow-up (D31).
 
-Status: **implemented**, not verified — one full green `-m stack` run is pending on the
-Anthropic API key's monthly cap (regains 2026-09-01 00:00 UTC); see `evidence/gates.md`.
+Status: **verified** (2026-08-26) — the API key's spend cap lifted early and the cold-start
+`-m stack` run went green: 149 passed, 0 failed, eval 18/18; see `evidence/gates.md`.

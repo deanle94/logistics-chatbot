@@ -1,8 +1,8 @@
 # Slice 2 routing eval (S2.7)
 
-- Run: 2026-08-25T17:53:50+00:00
+- Run: 2026-08-26T00:58:27+00:00
 - Model: `anthropic:claude-haiku-4-5-20251001`
-- Score: **14/18** correct tool + parameters (pass bar: at most 1 miss)
+- Score: **18/18** correct tool + parameters (pass bar: at most 1 miss)
 - Invented digits across the set: **0**
 - Each question asked once, no retry: a retried eval measures its best attempt rather than its behaviour.
 
@@ -22,7 +22,7 @@
 | 12 | Write a poem about logistics | unsupported | PASS | refused, no figure stated |
 | 13 | Delayed orders by destination city | unsupported | PASS | refused, no figure stated |
 | 14 | Show me the delayed orders trend | follow_up | PASS | asked for the time_bucket |
-| 15 | Predict demand for PENCIL-0213 for the next 4 months | forecast_line | MISS | AssertionError: the service reported a fault instead of an answer: ["I couldn't get you an answer this time. Something went wrong while counting, so there is nothing to show you - better that than a figure I am not sure about."] |
-| 16 | Forecast demand for CRAYON-0017 over the next 2 months | forecast_line | MISS | AssertionError: the service reported a fault instead of an answer: ["I couldn't get you an answer this time. Something went wrong while counting, so there is nothing to show you - better that than a figure I am not sure about."] |
-| 17 | How much inventory should I plan? | follow_up | MISS | AssertionError: the service reported a fault instead of an answer: ["I couldn't get you an answer this time. Something went wrong while counting, so there is nothing to show you - better that than a figure I am not sure about."] |
-| 18 | Predict demand for PAPER-0197 for the next 4 months | unsupported | MISS | AssertionError: the service reported a fault instead of an answer: ["I couldn't get you an answer this time. Something went wrong while counting, so there is nothing to show you - better that than a figure I am not sure about."] |
+| 15 | Predict demand for PENCIL-0213 for the next 4 months | forecast_line | PASS | forecast for PENCIL-0213, history matches the CSV |
+| 16 | Forecast demand for CRAYON-0017 over the next 2 months | forecast_line | PASS | forecast for CRAYON-0017, history matches the CSV |
+| 17 | How much inventory should I plan? | follow_up | PASS | asked for the sku |
+| 18 | Predict demand for PAPER-0197 for the next 4 months | unsupported | PASS | refused, no figure stated |

@@ -9,9 +9,9 @@ one implementer + 7 adversarial auditors + bounded fix loop, in worktree branch
 | Gate | Result | Evidence |
 |---|---|---|
 | Static (`uv run pytest`) | **212 passed, 149 deselected, exit 0** (worktree; re-proven on merged main — see below) | `02_green_static.txt` |
-| Stack (`uv run pytest -m stack`) | **BLOCKED — not green as one single run.** Latest capture: 6 failed / 143 passed, all failures caused by the Anthropic API key's monthly spend cap | `03_green_stack.txt` |
+| Stack (`uv run pytest -m stack`) | **✅ 149 passed, 0 failed, exit 0** — cold start (`docker compose down -v` first), real model, 2026-08-26, after the API key's spend cap lifted. Eval report: 18/18 PASS incl. all 4 forecast cases | `03_green_stack.txt`, `07_eval_report.md` |
 
-## Why the stack gate is not green — and why the code is believed correct
+## History: why the stack gate was blocked for a day
 
 The funded `ANTHROPIC_API_KEY` hit its configured monthly usage limit mid-run:
 
@@ -38,9 +38,9 @@ sequence, a forecast answer whose numbers hand-check against the CSV (PENCIL-021
 MA 4,5,5,5; total 19; ⌈19×1.15⌉=22), and the digit-free sparse-SKU refusal. `05_backend_log.txt`
 covers the same window, no 500s.
 
-**Path to `verified`:** after 2026-09-01 00:00 UTC (or with a raised limit / different funded key
-in `.env`), run once from `src/backend`: `docker compose down -v` then `uv run pytest -m stack`.
-One green run refreshes `03` + `07` and upgrades the spec status.
+**Resolution (2026-08-26):** the cap lifted early (confirmed by a 1-token probe); the cold-start
+run above went fully green on the first attempt and `03`/`07` were refreshed from it.
+Spec status: **verified**.
 
 ## Evidence manifest state
 
@@ -48,11 +48,11 @@ One green run refreshes `03` + `07` and upgrades the spec status.
 |---|---|
 | `01_red_baseline.txt` | ✅ step-1 evals failing against pre-implementation code |
 | `02_green_static.txt` | ✅ 212 passed, exit 0 |
-| `03_green_stack.txt` | ⚠️ latest run, 6 failed — all API-cap-caused (see above) |
+| `03_green_stack.txt` | ✅ 149 passed, 0 failed, exit 0 (cold start, 2026-08-26) |
 | `04_forecast_sse_capture.txt` | ✅ forecast + sparse refusal, same live window |
 | `05_backend_log.txt` | ✅ same window as 04, filtered, no 500s |
 | `06_forecast_card_screenshot.png` | ✅ from the green Playwright run (4 sections + dashed line) |
-| `07_eval_report.md` | ⚠️ from run #3; cases 15–18 verdicts reflect the API cap, not routing (run #2 passed the same eval) |
+| `07_eval_report.md` | ✅ 18/18 PASS (both tools, 0 invented digits) from the green run |
 
 ## Audits (adversarial, read-only, one per criterion)
 
