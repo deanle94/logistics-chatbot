@@ -114,13 +114,13 @@ Both emit the identical `unsupported` envelope, so the UI treats them the same. 
 
 |  |  |
 | --- | --- |
-| **Chose** | The Answer side runs on the prebuilt `create_agent` (verified in langchain 1.3.16) with the legal outputs as its only tools (`QueryParams` executes; `FollowUp`/`Refuse` are sentinels), rules 1–7 stated in the system prompt. Classify stays a separate structured call before the agent. This document stays the **behavioral contract**; enforcement moves from graph topology to a post-hoc wrapper — the `enforce` node, which **both** conditional-edge branches converge on: the follow-up sentinel's envelope wins and trailing prose is discarded; the refusal sentinel returns only a reason and `enforce` builds the one `unsupported` envelope from it, the same call the gate branch makes; else the digit-check (rule 1) runs against the query result; no tool called → `unsupported` after 1 retry. `checkpointer` and provider are `create_agent` params. **Provider amended 08_24_2026 (D24):** one provider everywhere — the Anthropic API, `claude-haiku-4-5-20251001`, built by `init_chat_model` from a single `LLM_MODEL` env value. Forced tool choice works there, so "tool call before text" is structural again rather than prompt-only. |
-| **Why** | Tech-lead call: simplest thing that can pass the gates first; the S2.3/S2.4/S2.7/S2.8 gates — not the graph — are what prove the rules hold. |
-| **Gave up** | "Tool call before text" and "one tool call max" stop being structural; a local model can drift and the prompt is the first defense. **Escalation, decided now:** if the gates cannot pass under prompt control, add `create_agent` middleware hooks first, the hand-built two-node graph second. |
+| **Chose** | Answer runs on the prebuilt `create_agent` (langchain 1.3.16); its only tools are the legal outputs, rules 1–7 live in the system prompt. Enforcement is a post-hoc `enforce` node — the single envelope builder and digit-check — not graph topology. **Amended by D24:** forced tool choice on the Anthropic provider makes "tool call before text" structural again. |
+| **Why** | Simplest thing that can pass the gates; the S2.x gates, not the graph, prove the rules hold. |
+| **Gave up** | Structural guarantees inside the loop. Escalation if gates fail: middleware hooks first, hand-built two-node graph second. |
 ### D7 — The forecast tool is the 4th legal output; `forecasting` joins the stage enum *(Slice 3, 08_25_2026)*
 
 |  |  |
 | --- | --- |
-| **Chose** | A 4th tool, `forecast{sku, horizon}`, appended to the Answer node's list. Classify sees it through the rendered tool descriptions — no prompt edit. All maths stay in `calculator/forecast.py`; a sparse or unknown SKU makes the tool hand back the same single-key refusal-reason JSON as the refusal sentinel, so `enforce` stays the only envelope builder (rule 4 unchanged). The closed SSE stage enum is hand-extended with `forecasting`, emitted by the tool as a LangGraph custom stream event because the tool runs *inside* the answer node and no node update can announce it. |
-| **Why** | Requirement 2.5 asks for forecasting through the same chat; a 4th structured output extends the existing contract without touching a rule. |
-| **Gave up** | Zero-churn reuse of `querying` for the forecast stage; the enum now names four stages in four places. |
+| **Chose** | A 4th tool, `forecast{sku, horizon}`, on the Answer node — no prompt edit. Maths stay in `calculator/forecast.py`; sparse/unknown SKUs return the refusal-reason JSON, so `enforce` stays the only envelope builder. The tool emits the new `forecasting` stage as a custom stream event. |
+| **Why** | Requirement 2.5 wants forecasting in the same chat; a 4th structured output extends the contract without touching a rule. |
+| **Gave up** | Reusing `querying` for the stage; the enum now names four stages in four places. |
