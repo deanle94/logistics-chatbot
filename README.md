@@ -64,16 +64,15 @@ Try:
 
 ## Key decisions
 
-Architecture decisions only; every entry in [docs/decision-log.md](docs/decision-log.md)
-records what we chose, why, and what we gave up.
+The three decisions from [docs/architecture.md](docs/architecture.md) §4, where each
+trade-off is recorded in full; the running record of every later decision is
+[docs/decision-log.md](docs/decision-log.md).
 
 | Decision | In short |
 |---|---|
-| Layer boundaries as import contracts | The architecture's rules are `import-linter` config checked by exit code; indirect leaks fail too. |
-| D9 — three fixed dashboard routes | Parameterless routes; chart composition stays in the frontend, each chart gets its own oracle. |
-| D18 — the calculator owns the SQL | `calculator/` builds an unexecuted statement, `data/` runs it: one home per formula while PostgreSQL aggregates. |
-| D24 — provider-enforced structure | One model everywhere; the model must emit a tool call before it can reply — a guarantee, not a prompt. |
-| agent-design D6 — prebuilt agent as one node | LangChain's `create_agent` owns the tool loop inside our three-node graph, instead of a hand-built loop. |
+| 1 — One calculator module owns every formula | Routes and tools only call it — one home per business definition. |
+| 2 — One service for dashboard and chat | The agent must be Python, so the whole stack is Python and the calculator is a plain in-process call. |
+| 3 — AI never computes | The agent only outputs a tool choice and structured parameters; every number traces back to a tool run over the real dataset. |
 
 ## Assumptions
 
@@ -86,6 +85,12 @@ records what we chose, why, and what we gave up.
 
 ## Limitations
 
+- The chat supports only questions that map to its two tools: the seven dataset metrics
+  (order counts, delivered/delayed orders, delay/on-time rate, average delivery time,
+  quantity — filtered or grouped) and per-SKU demand forecasts. Anything outside that
+  subset gets an explicit "unsupported" reply — the agent never guesses an answer.
+- One dataset, one language: answers come from the 400-order CSV only, and the agent is
+  exercised in English — other languages are untested.
 - The provider must honour forced tool choice. One that does not would pass startup and
   fail at the first question (D24 caveat); the S2.x gates are what qualify a provider.
 - The hosted DB is ephemeral — reseeded on every boot, nothing persists between deploys.
