@@ -1,0 +1,51 @@
+PS src/backend> uv run pytest tests/test_docs_gate.py tests/test_secret_scan.py
+============================= test session starts =============================
+platform win32 -- Python 3.13.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: A:\Learning\AI\HongKong_AI_Assessment-slice4-hardening\src\backend
+configfile: pyproject.toml
+plugins: anyio-4.14.2, langsmith-0.11.1
+collected 6 items
+
+tests\test_docs_gate.py F.F                                              [ 50%]
+tests\test_secret_scan.py ...                                            [100%]
+
+================================== FAILURES ===================================
+________________ test_readme_has_exactly_the_required_headings ________________
+
+    def test_readme_has_exactly_the_required_headings() -> None:
+        """S4.1: the H2 set equals the eight required headings, in order — no extras."""
+        titles = [title for _, title in _h2_headings(_readme_lines())]
+>       assert titles == list(REQUIRED_HEADINGS), (
+            f"README.md H2 headings must be exactly {list(REQUIRED_HEADINGS)}, found {titles}"
+        )
+E       AssertionError: README.md H2 headings must be exactly ['Setup', 'Architecture', 'AI approach', 'Key decisions', 'Assumptions', 'Limitations', 'Future improvements', 'AI-usage disclosure'], found ['Deployment']
+E       assert ['Deployment'] == ['Setup', 'Ar...tations', ...]
+E         
+E         At index 0 diff: 'Deployment' != 'Setup'
+E         Right contains 7 more items, first extra item: 'Architecture'
+E         Use -v to get more diff
+
+tests\test_docs_gate.py:78: AssertionError
+____________ test_env_example_names_every_variable_the_code_reads _____________
+
+    def test_env_example_names_every_variable_the_code_reads() -> None:
+        """S4.1 env parity: each derived variable name appears in .env.example.
+    
+        A commented mention counts — compose derives some values itself, and the
+        example file documents that rather than duplicating the derivation.
+        """
+        content = ENV_EXAMPLE_PATH.read_text(encoding="utf-8")
+        missing = sorted(
+            name
+            for name in _expected_variables()
+            if not re.search(rf"(?<![A-Za-z0-9_]){re.escape(name)}(?![A-Za-z0-9_])", content)
+        )
+>       assert not missing, f".env.example does not mention: {missing}"
+E       AssertionError: .env.example does not mention: ['CORS_ALLOW_ORIGINS', 'DATABASE_URL', 'DATASET_PATH', 'READ_ONLY_ROLE', 'SEED_DATABASE_URL', 'VITE_API_BASE_URL']
+E       assert not ['CORS_ALLOW_ORIGINS', 'DATABASE_URL', 'DATASET_PATH', 'READ_ONLY_ROLE', 'SEED_DATABASE_URL', 'VITE_API_BASE_URL']
+
+tests\test_docs_gate.py:110: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_docs_gate.py::test_readme_has_exactly_the_required_headings
+FAILED tests/test_docs_gate.py::test_env_example_names_every_variable_the_code_reads
+========================= 2 failed, 4 passed in 0.54s =========================
