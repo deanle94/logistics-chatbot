@@ -76,26 +76,20 @@ trade-off is recorded in full; the running record of every later decision is
 
 ## Assumptions
 
-- `infra/data/mock_logistics_data.csv` is the single, read-only source of truth. Tests
-  re-derive every expected number from it independently of the code under test.
-- The default credentials in `docker-compose.yml` are deliberate: S0.5 requires
-  `docker compose up` to work on a fresh clone. They only ever reach a local container;
-  any non-local deployment overrides all of them.
-- The stack gate assumes a funded Anthropic key in `.env`.
+- Rates count only finished orders (delivered + delayed) — spec didn't specify a denominator.
+- Orders missing a delivery date are excluded from delivery-time averages — spec didn't specify.
+- Forecast = 3-month moving average; stock advice adds a 15% safety buffer — spec didn't
+  specify a method or buffer.
+- Dataset is the single, read-only source of truth — spec didn't name another source.
 
 ## Limitations
 
-- The chat supports only questions that map to its two tools: the seven dataset metrics
-  (order counts, delivered/delayed orders, delay/on-time rate, average delivery time,
-  quantity — filtered or grouped) and per-SKU demand forecasts. Anything outside that
-  subset gets an explicit "unsupported" reply — the agent never guesses an answer.
-- One dataset, one language: answers come from the 400-order CSV only, and the agent is
-  exercised in English — other languages are untested.
-- The provider must honour forced tool choice. One that does not would pass startup and
-  fail at the first question (D24 caveat); the S2.x gates are what qualify a provider.
-- The hosted DB is ephemeral — reseeded on every boot, nothing persists between deploys.
-- `uv run pytest -m stack` is online and billable (~70 model calls per run).
-- No authentication: every endpoint, local and hosted, is public.
+- The chat answers only questions about the seven order metrics (counts, delivered/delayed
+  orders, delay/on-time rate, average delivery time, quantity — filtered or grouped) and
+  per-SKU demand forecasts.
+- Anything outside that subset gets an explicit "unsupported" reply — never a guessed answer.
+- Each question stands alone — the chat keeps no conversation history.
+- English questions only — other languages are untested.
 
 ## Future improvements
 
