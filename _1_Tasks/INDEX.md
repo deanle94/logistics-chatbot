@@ -5,9 +5,8 @@ _Generated 08_26_2026. 5 spec(s)._
 
 | Status | Count |
 |---|---|
-| draft | 1 |
 | implemented | 1 |
-| verified | 3 |
+| verified | 4 |
 
 ## Chat
 
@@ -26,7 +25,7 @@ _Generated 08_26_2026. 5 spec(s)._
 
 | Status | Spec | Created | Updated | Folder |
 |---|---|---|---|---|
-| draft | [Slice4 Hardening Docs](Hardening/08_26_2026_slice4_hardening_docs/spec.md) | 08_26_2026 | 08_26_2026 | `08_26_2026_slice4_hardening_docs` |
+| verified | [Slice4 Hardening Docs](Hardening/08_26_2026_slice4_hardening_docs/spec.md) | 08_26_2026 | 08_26_2026 | `08_26_2026_slice4_hardening_docs` |
 
 ## Skeleton
 

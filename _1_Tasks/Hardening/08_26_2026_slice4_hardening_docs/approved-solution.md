@@ -94,6 +94,17 @@ recommended state under the blanket approval.
 - No secrets committed; `.env` stays ignored; `infra/data/` untouched.
 - Nothing outside `docs/tasks.md` Slice 4.
 
+## Actual deviations during execution (appended post-implementation)
+
+All small/detail-level, none touching the approved approach:
+1. `VITE_API_BASE_URL` added as a 6th commented `.env.example` entry — required by
+   the approved derived-parity rule itself; the "5 vars" wording under-counted.
+2. Secret-scan assignment regex uses `[ \t]*` instead of `\s*` so the empty
+   `ANTHROPIC_API_KEY=` placeholder doesn't false-positive across the newline.
+3. Red baseline re-captured after that regex fix (doc gate red, scan green).
+4. Environment-only: worktree `npm ci` needed `npm_config_os=win32` (global
+   `.npmrc` sets `os=linux`); no repo change.
+
 ## Known consequences / risks
 
 - The 150-line cap is enforced by a test; future README growth must consciously
