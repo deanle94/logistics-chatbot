@@ -76,11 +76,10 @@ trade-off is recorded in full; the running record of every later decision is
 
 ## Assumptions
 
-- Rates count only finished orders (delivered + delayed) — spec didn't specify a denominator.
-- Orders missing a delivery date are excluded from delivery-time averages — spec didn't specify.
-- Forecast = 3-month moving average; stock advice adds a 15% safety buffer — spec didn't
-  specify a method or buffer.
-- Dataset is the single, read-only source of truth — spec didn't name another source.
+- Rates count only finished orders (delivered + delayed).
+- Orders missing a delivery date are excluded from delivery-time averages.
+- Forecast = 3-month moving average; stock advice adds a 15% safety buffer.
+- Dataset is the single, read-only source of truth.
 
 ## Limitations
 
