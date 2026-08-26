@@ -11,6 +11,7 @@ from __future__ import annotations
 import logging
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from langchain.chat_models import init_chat_model
 from langchain_core.language_models import BaseChatModel
 from langgraph.checkpoint.memory import InMemorySaver
@@ -126,8 +127,18 @@ def create_default_app() -> FastAPI:
     engine = create_database_engine(settings.database_url)
     execute_query = SqlAlchemyQueryExecutor(engine)
     logger.info("application configured")
-    return create_app(
+    app = create_app(
         database_probe=SqlAlchemyDatabaseProbe(engine),
         execute_query=execute_query,
         chat_graph=create_default_chat_graph(execute_query),
     )
+    if settings.cors_allow_origins:
+        # Only the cross-origin deployment (static frontend on another host) sets this;
+        # behind nginx the browser and API share one origin and no CORS layer exists.
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=[o.strip() for o in settings.cors_allow_origins.split(",")],
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+    return app

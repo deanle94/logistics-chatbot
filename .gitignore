@@ -21,3 +21,6 @@ test-results/
 # Lavish review artifacts
 .lavish/
 .obsidian/
+
+# Deployment tooling stays local-only (decision D32): never pushed.
+infra/deploy/

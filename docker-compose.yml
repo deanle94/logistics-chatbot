@@ -62,6 +62,11 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?set it in .env}
       LLM_MODEL: ${LLM_MODEL:-anthropic:claude-haiku-4-5-20251001}
       LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-25}
+      # LangSmith tracing (optional). `:-` defaults, not `:?`: tracing is a dev tool,
+      # the stack must still start with no key (S0.5). langsmith ships with langchain-core.
+      LANGSMITH_TRACING: ${LANGSMITH_TRACING:-false}
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY:-}
+      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT:-dean-demo}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     depends_on:

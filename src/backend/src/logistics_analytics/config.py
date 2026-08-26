@@ -29,6 +29,13 @@ class Settings(BaseSettings):
     database_url: str = Field(
         description="SQLAlchemy URL for the read-only application role.",
     )
+    cors_allow_origins: str = Field(
+        default="",
+        description=(
+            "Comma-separated browser origins allowed by CORS. Empty means no CORS "
+            "middleware at all: same-origin deployments (nginx in front) need none."
+        ),
+    )
 
 
 class LlmSettings(BaseSettings):

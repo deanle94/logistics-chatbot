@@ -332,6 +332,14 @@ Taken at design review, before any Slice 2 code. The first transport decision in
 | **Why** | The classifier's prompt is rendered from the tools' own descriptions (D26), so a routing fact about a tool belongs on the tool — the same "fixes go into schemas, not prompts" rule Slice 2 measured. Verified 5/5 on the live model, with Q13/Q14 routing unchanged. |
 | **Gave up** | Two slightly longer descriptions every turn pays tokens for. |
 
+### D32 — Deployed as Amplify (static frontend) + one Lightsail container service (backend + ephemeral Postgres)
+
+|  |  |
+| --- | --- |
+| **Chose** | Frontend built locally and pushed to Amplify by manual CLI deploy. Backend and Postgres run as two containers in one Lightsail container service (`small`, scale 1); the DB is ephemeral and a deploy-only backend entrypoint reruns the idempotent seeder on every boot, then starts uvicorn. Browser calls the Lightsail URL directly: `VITE_API_BASE_URL` at build time plus opt-in `CORS_ALLOW_ORIGINS` on the backend (empty = no CORS, so local one-origin behaviour is unchanged). Deploy tooling lives in gitignored `infra/deploy/`, local-only. |
+| **Why** | Cheapest managed pair with public HTTPS on both ends (~$16/mo) and no domain to buy. The SSE chat stream stays unproxied — an Amplify rewrite would put CloudFront in front of a 30 s event stream. Ephemeral DB is safe because the dataset is 400 read-only rows the seeder rebuilds in seconds, and chat memory was already in-RAM (D25). |
+| **Gave up** | DB persistence and the one-origin premise of D5 (two origins now, CORS opt-in). Owner-role credentials sit in the backend container's *env* for the boot-time seed — the API process still connects read-only, grants remain the enforcement (D4 intact). Secrets are plaintext in the Lightsail deployment (no secret store there); scale is pinned to 1. Reviewers cloning the repo don't get the deploy scripts — the live URLs and this entry are the record. |
+
 
 ---
 
@@ -348,6 +356,7 @@ All dated 08_23_2026. No acceptance criterion was loosened and no expected numbe
 - **`agent-design.md` gained D6** *(dated 08_24_2026)*. Tech lead chose the prebuilt `langchain.agents.create_agent` with prompt-controlled flow over the hand-built two-node StateGraph; the document's graph is now the behavioral contract enforced by a post-hoc wrapper + the S2.x gates, with the escalation path (middleware → custom graph) recorded in D6.
 - **Suggested question chips removed** *(dated 08_24_2026)*. Tech-lead scope cut: `tasks.md` S2.6 dropped "suggested chips" and its "≥3 chips, click fills input" pass-when; the Out-of-scope note now lists chips as bonus. Slice 2 spec updated to match. FollowUp `options[]` (agent-design.md) are unaffected. No number changed.
 - **`spec.md` S0.3 status labels.** The spec's `304/55/27/11/3` had the right numbers with swapped labels; the CSV gives `delivered 304, delayed 55, in_transit 27, exception 11, canceled 3`. Text corrected; the test derives the mapping from the CSV at runtime, so it cannot drift again.
+- **LangSmith tracing, env vars only** *(dated 08_24_2026)*. Dev-tool observability for the chat agent: `LANGSMITH_TRACING/_API_KEY/_PROJECT` (project `dean-demo`) added to compose with `:-` defaults so the keyless one-command start (S0.5) holds. Zero code: `langsmith` already ships with `langchain-core` and LangChain auto-traces when the vars are set. Rejected typed `LlmSettings` fields as over-engineering.
 
 ---
 

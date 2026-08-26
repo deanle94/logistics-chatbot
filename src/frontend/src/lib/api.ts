@@ -1,14 +1,17 @@
 import axios from 'axios'
 
 /**
- * All backend calls go through a relative `/api` path rather than an absolute URL.
+ * All backend calls go through one base. Relative `/api` by default: nginx proxies it to
+ * the backend, so browser and API share one origin and CORS never enters the picture.
  *
- * nginx proxies `/api` to the backend, so browser and API share one origin: the same
- * bundle works in the container, behind a public URL, and in the dev server without a
- * rebuild, and CORS never enters the picture.
+ * `VITE_API_BASE_URL` (build-time) overrides it for deployments where the frontend is
+ * static hosting and the API is another origin serving its routes at the root — the
+ * backend must then allow this origin via `CORS_ALLOW_ORIGINS`.
  */
+export const API_BASE: string = import.meta.env.VITE_API_BASE_URL || '/api'
+
 export const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE,
   timeout: 10_000,
 })
 

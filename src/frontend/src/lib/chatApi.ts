@@ -1,3 +1,4 @@
+import { API_BASE } from '@/lib/api'
 import type { ChartParams, ChartRow } from '@/lib/api'
 
 /**
@@ -113,7 +114,7 @@ export async function* streamChat(
   request: ChatRequest,
   signal: AbortSignal,
 ): AsyncGenerator<ChatEvent> {
-  const response = await fetch('/api/chat', {
+  const response = await fetch(`${API_BASE}/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
