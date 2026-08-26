@@ -83,3 +83,22 @@ Rejected: `subgraphs=True` node sniffing. Why lost: couples `api/` to `create_ag
 - Refusal must reuse `REFUSAL_REASON_KEY` — only `agent/nodes.py` may write the `unsupported` display (`test_agent_rules.py:204`).
 - Python per `rules/python-coding-rules.md`; React per `rules/react-coding-rules.md`.
 - Evidence manifest: all seven files in the spec are required.
+
+---
+
+## Actual deviations (appended post-execution, 2026-08-26)
+
+Execution followed this design; eight small detail deviations were made and recorded
+(full rationale in `evidence/gates.md` and `docs/decision-log.md` D29–D31):
+
+1. `subgraphs=True` on the astream call — the pre-approved fallback (langgraph 1.2.11 swallows the custom event without it; no node names inspected).
+2. `REFUSAL_REASON_KEY` lives in `tools/schemas.py`, not `query_tool.py` (circular import).
+3. `sse_reader.invented_digits()` also credits the `forecast` block.
+4. `test_tool_validation.py` enum assertion updated for `MissingInfo.SKU`.
+5. Refusal reason names the history problem without quoting the SKU code (digit-free rule).
+6. Test/eval SKUs are real dataset SKUs (PENCIL-0213, CRAYON-0017, PAPER-0197) — the mock's SKU-1042 doesn't exist in the CSV.
+7. Envelope key-set test gained `"forecast"`.
+8. `forecast`/`ask_follow_up` tool descriptions reworded so sku-less planning questions draw a follow-up (D31).
+
+Status: **implemented**, not verified — one full green `-m stack` run is pending on the
+Anthropic API key's monthly cap (regains 2026-09-01 00:00 UTC); see `evidence/gates.md`.
